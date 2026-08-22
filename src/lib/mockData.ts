@@ -1,0 +1,175 @@
+// Mock data for development (replace with Supabase queries)
+import type { WorkerProfile, JobListing, Review } from '../types';
+
+export const MOCK_WORKERS: WorkerProfile[] = [
+  {
+    id: '1', user_id: 'u1', first_name: 'Ramesh', last_name: 'Kumar',
+    title: 'Licensed Electrician', bio: 'Experienced electrician with 8 years in residential and commercial wiring. Certified by ITI Mumbai.',
+    location: 'Mumbai, Maharashtra', city: 'Mumbai', state: 'Maharashtra',
+    hourly_rate: 350, travel_distance: '25km', experience_level: '5-10yr',
+    availability_status: 'available', is_premium: true, rating: 4.8, total_reviews: 47,
+    skills: ['Wiring', 'Panel Installation', 'Troubleshooting', 'Solar Installation'],
+    work_preferences: ['full-time', 'contract', 'emergency'],
+  },
+  {
+    id: '2', user_id: 'u2', first_name: 'Priya', last_name: 'Sharma',
+    title: 'Professional Cook', bio: 'Specializing in North and South Indian cuisine. 5 years experience in homes and small restaurants.',
+    location: 'Delhi, Delhi', city: 'Delhi', state: 'Delhi',
+    hourly_rate: 280, travel_distance: '10km', experience_level: '3-5yr',
+    availability_status: 'available', is_premium: false, rating: 4.6, total_reviews: 31,
+    skills: ['North Indian', 'South Indian', 'Meal Planning', 'Baking'],
+    work_preferences: ['part-time', 'weekend'],
+  },
+  {
+    id: '3', user_id: 'u3', first_name: 'Suresh', last_name: 'Patil',
+    title: 'Master Plumber', bio: 'Expert in pipe fitting, leak detection and bathroom installations. Serving Pune for 10+ years.',
+    location: 'Pune, Maharashtra', city: 'Pune', state: 'Maharashtra',
+    hourly_rate: 320, travel_distance: '25km', experience_level: '10+yr',
+    availability_status: 'available', is_premium: true, rating: 4.9, total_reviews: 68,
+    skills: ['Pipe Fitting', 'Leak Repair', 'Bathroom Install', 'Water Heater'],
+    work_preferences: ['contract', 'emergency', 'full-time'],
+  },
+  {
+    id: '4', user_id: 'u4', first_name: 'Anita', last_name: 'Devi',
+    title: 'House Cleaning Expert', bio: 'Professional deep cleaning services for homes and offices. Trustworthy, punctual and thorough.',
+    location: 'Bangalore, Karnataka', city: 'Bangalore', state: 'Karnataka',
+    hourly_rate: 200, travel_distance: '15km', experience_level: '1-3yr',
+    availability_status: 'available', is_premium: false, rating: 4.5, total_reviews: 22,
+    skills: ['Deep Cleaning', 'Kitchen Cleaning', 'Bathroom Cleaning', 'Organizing'],
+    work_preferences: ['part-time', 'morning'],
+  },
+  {
+    id: '5', user_id: 'u5', first_name: 'Vijay', last_name: 'Singh',
+    title: 'Professional Driver', bio: 'Clean driving record for 12 years. Expert in city navigation, familiar with all major Indian cities.',
+    location: 'Hyderabad, Telangana', city: 'Hyderabad', state: 'Telangana',
+    hourly_rate: 250, travel_distance: '50km', experience_level: '10+yr',
+    availability_status: 'soon', is_premium: false, rating: 4.7, total_reviews: 55,
+    skills: ['City Driving', 'Highway', 'Heavy Vehicle', 'Navigation'],
+    work_preferences: ['full-time', 'contract'],
+  },
+  {
+    id: '6', user_id: 'u6', first_name: 'Mohan', last_name: 'Carpenter',
+    title: 'Skilled Carpenter', bio: 'Custom furniture maker and home renovation specialist. Creates beautiful wooden pieces with precision.',
+    location: 'Chennai, Tamil Nadu', city: 'Chennai', state: 'Tamil Nadu',
+    hourly_rate: 400, travel_distance: '20km', experience_level: '5-10yr',
+    availability_status: 'available', is_premium: true, rating: 4.8, total_reviews: 39,
+    skills: ['Custom Furniture', 'Wood Polishing', 'Door Fitting', 'Cabinet Making'],
+    work_preferences: ['contract', 'full-time'],
+  },
+];
+
+export const MOCK_JOBS: JobListing[] = [
+  {
+    id: 'j1', employer_id: 'e1', type: 'business', title: 'Electrician for Office Rewiring',
+    category: 'electrician', description: 'We need a licensed electrician to rewire our office space of 2000 sq ft. Must have experience with commercial installations.',
+    location: 'Mumbai, Maharashtra', pay_rate: 500, pay_type: 'daily', duration: '5 days',
+    urgency: 'normal', is_premium: false, status: 'active',
+    expires_at: '2024-12-31', created_at: '2024-11-01',
+    required_skills: ['Commercial Wiring', 'Panel Installation'],
+    job_type: 'contract',
+    employer: { id: 'e1', user_id: 'eu1', name: 'Tech Solutions Ltd', company_name: 'Tech Solutions Ltd', location: 'Mumbai', is_verified: true },
+  },
+  {
+    id: 'j2', employer_id: 'e2', type: 'household', title: 'Cook for Family of 4',
+    category: 'cook', description: 'Looking for a regular cook for morning and evening meals. North Indian and South Indian cuisine preferred.',
+    location: 'Delhi, Delhi', pay_rate: 12000, pay_type: 'monthly', duration: 'Ongoing',
+    urgency: 'normal', is_premium: true, status: 'active',
+    expires_at: '2024-12-31', created_at: '2024-11-02',
+    required_skills: ['North Indian', 'South Indian'],
+    job_type: 'full-time',
+    employer: { id: 'e2', user_id: 'eu2', name: 'Sharma Family', location: 'Delhi', is_verified: false },
+  },
+  {
+    id: 'j3', employer_id: 'e3', type: 'business', title: 'Plumber for Hotel Maintenance',
+    category: 'plumber', description: 'Ongoing plumbing maintenance for a 50-room hotel. Must be available for emergency calls.',
+    location: 'Pune, Maharashtra', pay_rate: 450, pay_type: 'daily', duration: '3 months',
+    urgency: 'urgent', is_premium: false, status: 'active',
+    expires_at: '2024-12-31', created_at: '2024-11-03',
+    required_skills: ['Commercial Plumbing', 'Emergency Repairs'],
+    job_type: 'contract',
+    employer: { id: 'e3', user_id: 'eu3', name: 'Grand Stay Hotels', company_name: 'Grand Stay Hotels', location: 'Pune', is_verified: true },
+  },
+  {
+    id: 'j4', employer_id: 'e4', type: 'household', title: 'Part-time House Cleaner',
+    category: 'cleaning', description: 'Need a reliable cleaner for 3 hours every morning (Mon-Fri). 3BHK apartment.',
+    location: 'Bangalore, Karnataka', pay_rate: 150, pay_type: 'hourly', duration: 'Ongoing',
+    urgency: 'normal', is_premium: false, status: 'active',
+    expires_at: '2024-12-31', created_at: '2024-11-04',
+    required_skills: ['Deep Cleaning', 'Organizing'],
+    job_type: 'part-time',
+    employer: { id: 'e4', user_id: 'eu4', name: 'Gupta Family', location: 'Bangalore', is_verified: false },
+  },
+  {
+    id: 'j5', employer_id: 'e5', type: 'business', title: 'Driver for Corporate Fleet',
+    category: 'driver', description: 'Corporate driver needed for executive transportation. Clean record required, professional attire.',
+    location: 'Hyderabad, Telangana', pay_rate: 25000, pay_type: 'monthly', duration: 'Permanent',
+    urgency: 'normal', is_premium: true, status: 'active',
+    expires_at: '2024-12-31', created_at: '2024-11-05',
+    required_skills: ['City Driving', 'Professional Conduct'],
+    job_type: 'full-time',
+    employer: { id: 'e5', user_id: 'eu5', name: 'Infosys Ltd', company_name: 'Infosys Ltd', location: 'Hyderabad', is_verified: true },
+  },
+  {
+    id: 'j6', employer_id: 'e6', type: 'business', title: 'Carpenter for Furniture Installation',
+    category: 'carpenter', description: 'New office setup needs carpenter for 2 weeks to install modular furniture across all floors.',
+    location: 'Chennai, Tamil Nadu', pay_rate: 600, pay_type: 'daily', duration: '2 weeks',
+    urgency: 'urgent', is_premium: false, status: 'active',
+    expires_at: '2024-12-31', created_at: '2024-11-06',
+    required_skills: ['Furniture Assembly', 'Cabinet Making'],
+    job_type: 'contract',
+    employer: { id: 'e6', user_id: 'eu6', name: 'StartupHub Chennai', company_name: 'StartupHub', location: 'Chennai', is_verified: true },
+  },
+];
+
+export const MOCK_REVIEWS: Review[] = [
+  { id: 'r1', reviewer_id: 'e1', worker_id: '1', rating: 5, comment: 'Ramesh did an excellent job rewiring our office. Very professional and completed on time.', created_at: '2024-10-15', reviewer_name: 'Tech Solutions Ltd' },
+  { id: 'r2', reviewer_id: 'e2', worker_id: '1', rating: 5, comment: 'Showed up on time, fixed the problem quickly, very clean work.', created_at: '2024-09-20', reviewer_name: 'Sharma Family' },
+  { id: 'r3', reviewer_id: 'e3', worker_id: '3', rating: 5, comment: 'Suresh is the best plumber we have worked with. Highly recommend!', created_at: '2024-10-01', reviewer_name: 'Grand Stay Hotels' },
+];
+
+export const CATEGORIES = [
+  { key: 'electrician', icon: '⚡', count: 1240 },
+  { key: 'plumber', icon: '🔧', count: 890 },
+  { key: 'carpenter', icon: '🪚', count: 670 },
+  { key: 'cook', icon: '👨‍🍳', count: 1100 },
+  { key: 'cleaning', icon: '🧹', count: 950 },
+  { key: 'driver', icon: '🚗', count: 780 },
+  { key: 'security', icon: '🔒', count: 540 },
+  { key: 'painter', icon: '🎨', count: 430 },
+  { key: 'welder', icon: '🔥', count: 320 },
+  { key: 'mason', icon: '🧱', count: 290 },
+  { key: 'acTech', icon: '❄️', count: 410 },
+  { key: 'gardener', icon: '🌿', count: 380 },
+];
+
+export const TESTIMONIALS = [
+  {
+    name: 'Ravi Mehra',
+    role: 'Electrician, Mumbai',
+    text: 'Before Elev8, I spent weeks looking for jobs. Now I get 3-4 inquiries every week. My income has doubled!',
+    rating: 5,
+    isWorker: true,
+  },
+  {
+    name: 'Sunita Rao',
+    role: 'Professional Cook, Bangalore',
+    text: 'Elev8 helped me get a verified badge for my cooking skills. Employers trust me much more now.',
+    rating: 5,
+    isWorker: true,
+  },
+  {
+    name: 'Deepak Enterprises',
+    role: 'Employer, Pune',
+    text: 'We hired 12 workers through Elev8 in the past year. The verification system gives us full confidence.',
+    rating: 5,
+    isWorker: false,
+  },
+];
+
+export const PARTNERS = ['NSDC', 'ITI', 'Udemy', 'UpSkill India'];
+
+export const TEAM = [
+  { name: 'Arjun Mehta', role: 'CEO & Co-Founder', initials: 'AM', bio: 'Former IIT-B graduate with 10 years in workforce development. Passionate about dignifying blue-collar work.' },
+  { name: 'Kavya Nair', role: 'CTO & Co-Founder', initials: 'KN', bio: 'Full-stack engineer and AI specialist. Built platforms serving millions of users across India.' },
+  { name: 'Pradeep Yadav', role: 'Head of Community', initials: 'PY', bio: 'Social entrepreneur with deep roots in rural India. Connects policy with ground-level worker needs.' },
+];
