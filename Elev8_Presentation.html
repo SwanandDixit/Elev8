@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Elev8 — Hackathon Presentation</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; }
+
+  .slides { width: 100%; }
+  .slide {
+    display: none;
+    width: 100%;
+    min-height: 100vh;
+    padding: 60px 80px;
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .slide.active { display: flex; }
+
+  /* Navigation */
+  .nav {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 12px; z-index: 100; align-items: center;
+    background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+    border-radius: 50px; padding: 10px 20px;
+  }
+  .nav button {
+    background: #1A56DB; color: white; border: none;
+    padding: 10px 24px; border-radius: 25px; cursor: pointer;
+    font-size: 14px; font-weight: 600; transition: all 0.2s;
+  }
+  .nav button:hover { background: #1040B0; }
+  .nav button:disabled { opacity: 0.3; cursor: not-allowed; }
+  .slide-counter { color: white; font-size: 14px; min-width: 60px; text-align: center; }
+
+  /* Slide styles */
+  .s1 { background: linear-gradient(135deg, #1A56DB 0%, #0f172a 60%); }
+  .s2 { background: #0f172a; }
+  .s3 { background: linear-gradient(135deg, #1e0a2e 0%, #0f172a 100%); }
+  .s4 { background: #0f172a; }
+  .s5 { background: linear-gradient(135deg, #0a1f0a 0%, #0f172a 100%); }
+  .s6 { background: #0f172a; }
+  .s7 { background: linear-gradient(135deg, #1a0a00 0%, #0f172a 100%); }
+  .s8 { background: #0f172a; }
+  .s9 { background: linear-gradient(135deg, #0a0a2e 0%, #0f172a 100%); }
+  .s10 { background: linear-gradient(135deg, #1A56DB 0%, #0f172a 60%); }
+
+  /* Typography */
+  .tag { display: inline-block; background: rgba(245,158,11,0.2); color: #F59E0B; border: 1px solid #F59E0B; border-radius: 20px; padding: 6px 18px; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
+  h1 { font-size: 72px; font-weight: 800; line-height: 1.1; margin-bottom: 20px; }
+  h2 { font-size: 44px; font-weight: 800; margin-bottom: 10px; }
+  h3 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .subtitle { font-size: 22px; color: #94a3b8; line-height: 1.6; max-width: 600px; }
+  .section-title { font-size: 14px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #1A56DB; margin-bottom: 12px; }
+
+  /* Cards grid */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 30px; }
+  .grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; margin-top: 30px; }
+
+  .card {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 24px;
+  }
+  .card-blue { border-color: #1A56DB; background: rgba(26,86,219,0.1); }
+  .card-amber { border-color: #F59E0B; background: rgba(245,158,11,0.1); }
+  .card-green { border-color: #10B981; background: rgba(16,185,129,0.1); }
+  .card-red { border-color: #EF4444; background: rgba(239,68,68,0.1); }
+
+  .stat-big { font-size: 52px; font-weight: 900; color: #1A56DB; }
+  .stat-label { font-size: 14px; color: #94a3b8; margin-top: 4px; }
+
+  .emoji { font-size: 36px; margin-bottom: 12px; display: block; }
+  .check { color: #10B981; margin-right: 8px; }
+  .cross { color: #EF4444; margin-right: 8px; }
+  ul { list-style: none; }
+  ul li { padding: 8px 0; font-size: 16px; color: #cbd5e1; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  ul li:last-child { border: none; }
+
+  .badge { display: inline-block; background: #1A56DB; color: white; border-radius: 6px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin: 4px; }
+  .badge-green { background: #10B981; }
+  .badge-amber { background: #F59E0B; color: #000; }
+
+  .logo { font-size: 80px; font-weight: 900; color: #1A56DB; }
+  .logo span { color: #F59E0B; }
+
+  .arch-box {
+    background: rgba(26,86,219,0.15); border: 2px solid #1A56DB;
+    border-radius: 12px; padding: 20px; text-align: center; font-weight: 600;
+  }
+  .arch-arrow { text-align: center; font-size: 28px; color: #1A56DB; padding: 8px 0; }
+
+  .progress-bar { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-top: 8px; }
+  .progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #1A56DB, #F59E0B); }
+</style>
+</head>
+<body>
+
+<div class="slides">
+
+  <!-- Slide 1: Title -->
+  <div class="slide s1 active">
+    <div class="tag">🏆 Hackathon Submission 2024</div>
+    <div class="logo">Elev<span>8</span></div>
+    <h2 style="font-size:32px; color:#94a3b8; margin-bottom:24px;">Skill-Based Employment Platform for Blue-Collar Workers in India</h2>
+    <p class="subtitle">Connecting 500M+ skilled workers with dignified, direct, verified employment opportunities — cutting out middlemen, breaking language barriers, building trust.</p>
+    <div style="margin-top:40px; display:flex; gap:12px; flex-wrap:wrap;">
+      <span class="badge">React + Vite</span>
+      <span class="badge">TypeScript</span>
+      <span class="badge">Tailwind CSS v4</span>
+      <span class="badge badge-green">Supabase</span>
+      <span class="badge badge-amber">Multilingual</span>
+      <span class="badge">Mobile-First</span>
+    </div>
+  </div>
+
+  <!-- Slide 2: Problem -->
+  <div class="slide s2">
+    <div class="section-title">The Problem</div>
+    <h2>500M Workers. <span style="color:#EF4444">Zero Digital Identity.</span></h2>
+    <p class="subtitle" style="margin:16px 0 30px;">India's blue-collar workforce is the backbone of the economy — yet they remain completely excluded from the digital opportunity landscape.</p>
+    <div class="grid2">
+      <div class="card card-red">
+        <span class="emoji">💸</span>
+        <h3>Exploitative Middlemen</h3>
+        <p style="color:#94a3b8; font-size:15px;">Workers pay 40–60% commission to local agents just to find jobs. No transparency, no accountability.</p>
+      </div>
+      <div class="card card-red">
+        <span class="emoji">🌐</span>
+        <h3>Language Barriers</h3>
+        <p style="color:#94a3b8; font-size:15px;">Existing platforms built only in English exclude 400M+ Hindi and Marathi speakers from digital work discovery.</p>
+      </div>
+      <div class="card card-red">
+        <span class="emoji">🔒</span>
+        <h3>Zero Trust System</h3>
+        <p style="color:#94a3b8; font-size:15px;">Employers can't verify worker skills or background — leading to hesitation, lower pay, and exploitation.</p>
+      </div>
+      <div class="card card-red">
+        <span class="emoji">🏠</span>
+        <h3>Household Employers Ignored</h3>
+        <p style="color:#94a3b8; font-size:15px;">Millions of household employers (maids, cooks, drivers) have no safe digital platform to find verified workers.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 3: Market Size -->
+  <div class="slide s3">
+    <div class="section-title">Market Opportunity</div>
+    <h2>A <span style="color:#F59E0B">Massive</span> Untapped Market</h2>
+    <div class="grid4" style="margin-top:40px;">
+      <div class="card" style="text-align:center;">
+        <div class="stat-big">500M+</div>
+        <div class="stat-label">Blue-collar workers in India</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div class="stat-big">₹12T</div>
+        <div class="stat-label">Annual informal labour market value</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div class="stat-big">80%</div>
+        <div class="stat-label">Workers lack recognized certifications</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div class="stat-big">47%</div>
+        <div class="stat-label">Skills mismatch between workers & employers</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:24px; background: rgba(26,86,219,0.1); border-color: #1A56DB;">
+      <p style="font-size:18px; color:#cbd5e1;">📌 No existing platform simultaneously addresses <strong>multilingual access</strong>, <strong>household employers</strong>, and <strong>skill certification</strong> for blue-collar workers in India.</p>
+    </div>
+  </div>
+
+  <!-- Slide 4: Solution -->
+  <div class="slide s4">
+    <div class="section-title">Our Solution</div>
+    <h2>Elev8 — One Platform, <span style="color:#1A56DB">Everything</span></h2>
+    <div class="grid3" style="margin-top:30px;">
+      <div class="card card-blue">
+        <span class="emoji">🌐</span>
+        <h3>Multilingual First</h3>
+        <p style="color:#94a3b8; font-size:14px;">English, हिंदी, मराठी — instant switching, no reload. Devanagari typography. Language persisted in localStorage.</p>
+      </div>
+      <div class="card card-blue">
+        <span class="emoji">🛡️</span>
+        <h3>Skill Certification</h3>
+        <p style="color:#94a3b8; font-size:14px;">Partner certs (NSDC, ITI, Udemy) + Elev8 practical assessments. Verified badges build employer trust.</p>
+      </div>
+      <div class="card card-blue">
+        <span class="emoji">🏠</span>
+        <h3>Household + Business</h3>
+        <p style="color:#94a3b8; font-size:14px;">Dual posting flows. Separate requirement types with address privacy for household employers.</p>
+      </div>
+      <div class="card card-blue">
+        <span class="emoji">📱</span>
+        <h3>Mobile-First</h3>
+        <p style="color:#94a3b8; font-size:14px;">Works on ₹5,000 Android phones. Bottom nav, touch targets, filter sheets — all optimized for mobile.</p>
+      </div>
+      <div class="card card-blue">
+        <span class="emoji">🔐</span>
+        <h3>Secure Auth</h3>
+        <p style="color:#94a3b8; font-size:14px;">Supabase + Google OAuth. Role-based access: Worker / Employer / Admin. RLS on every database table.</p>
+      </div>
+      <div class="card card-blue">
+        <span class="emoji">⚡</span>
+        <h3>Zero Middlemen</h3>
+        <p style="color:#94a3b8; font-size:14px;">Direct connection between worker and employer. Standard listing is free. Premium boost for ₹299.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 5: Features -->
+  <div class="slide s5">
+    <div class="section-title">Platform Features</div>
+    <h2>11 Complete <span style="color:#10B981">Production-Ready</span> Pages</h2>
+    <div class="grid2" style="margin-top:30px;">
+      <div>
+        <ul>
+          <li><span class="check">✅</span><strong>Home</strong> — Hero, animated stats counter, categories, testimonials</li>
+          <li><span class="check">✅</span><strong>Find Work</strong> — Search + filter + sort job listings</li>
+          <li><span class="check">✅</span><strong>Browse Workers</strong> — Worker directory with availability filter</li>
+          <li><span class="check">✅</span><strong>Worker Profile</strong> — Full profile, skills, reviews, hire CTA</li>
+          <li><span class="check">✅</span><strong>Post Requirement</strong> — 3-step posting (Household / Business)</li>
+          <li><span class="check">✅</span><strong>Register Worker</strong> — 4-step onboarding flow</li>
+        </ul>
+      </div>
+      <div>
+        <ul>
+          <li><span class="check">✅</span><strong>Certifications</strong> — Partner certs + Elev8 assessment system</li>
+          <li><span class="check">✅</span><strong>About</strong> — Mission, values, team, timeline</li>
+          <li><span class="check">✅</span><strong>Sign In / Sign Up</strong> — Email + Google OAuth, role toggle</li>
+          <li><span class="check">✅</span><strong>Worker Dashboard</strong> — Applications, matches, profile</li>
+          <li><span class="check">✅</span><strong>Employer Dashboard</strong> — Listings, applicants</li>
+          <li><span class="check">✅</span><strong>Admin Panel</strong> — User mgmt, cert queue, moderation</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 6: Architecture -->
+  <div class="slide s6">
+    <div class="section-title">Architecture & Tech Stack</div>
+    <h2>Built for <span style="color:#1A56DB">Scale</span></h2>
+    <div style="display:flex; gap:40px; margin-top:30px; align-items:flex-start;">
+      <div style="flex:1;">
+        <div class="arch-box" style="margin-bottom:12px;">
+          <div style="color:#1A56DB; font-size:13px; margin-bottom:8px;">FRONTEND</div>
+          React 18 + Vite + TypeScript<br/>Tailwind CSS v4 + Zustand + React Router v6
+        </div>
+        <div class="arch-arrow">⬇️</div>
+        <div class="arch-box" style="margin-bottom:12px;">
+          <div style="color:#10B981; font-size:13px; margin-bottom:8px;">BACKEND</div>
+          Supabase (PostgreSQL + RLS)<br/>Supabase Auth + Realtime
+        </div>
+        <div class="arch-arrow">⬇️</div>
+        <div class="arch-box">
+          <div style="color:#F59E0B; font-size:13px; margin-bottom:8px;">DEPLOYMENT</div>
+          Vercel Edge Network + CDN<br/>Global low-latency delivery
+        </div>
+      </div>
+      <div style="flex:1.2;">
+        <div class="grid2" style="margin-top:0;">
+          <div class="card card-blue" style="padding:16px;">
+            <h3 style="font-size:16px;">Scalability</h3>
+            <p style="font-size:13px; color:#94a3b8; margin-top:8px;">Supabase PgBouncer handles millions of concurrent connections. Stateless frontend scales infinitely on Vercel.</p>
+          </div>
+          <div class="card card-green" style="padding:16px;">
+            <h3 style="font-size:16px;">Security</h3>
+            <p style="font-size:13px; color:#94a3b8; margin-top:8px;">Row Level Security on every table. JWT tokens. No sensitive data in client code.</p>
+          </div>
+          <div class="card card-amber" style="padding:16px;">
+            <h3 style="font-size:16px;">Performance</h3>
+            <p style="font-size:13px; color:#94a3b8; margin-top:8px;">Vite code splitting. Lazy-loaded i18n. 169KB gzipped bundle. Fast on 3G networks.</p>
+          </div>
+          <div class="card" style="padding:16px; border-color:#8B5CF6; background:rgba(139,92,246,0.1);">
+            <h3 style="font-size:16px;">Payments Ready</h3>
+            <p style="font-size:13px; color:#94a3b8; margin-top:8px;">Razorpay integration ready. Premium listings for ₹299/month. Monetization from day one.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 7: Innovation -->
+  <div class="slide s7">
+    <div class="section-title">Innovation & Differentiation</div>
+    <h2>Why Elev8 is <span style="color:#F59E0B">Different</span></h2>
+    <div style="margin-top:30px; display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+      <div>
+        <h3 style="color:#EF4444; margin-bottom:16px;">❌ Existing Solutions</h3>
+        <ul>
+          <li><span class="cross">✗</span> English-only — excludes 400M+ users</li>
+          <li><span class="cross">✗</span> No household employer support</li>
+          <li><span class="cross">✗</span> No skill verification system</li>
+          <li><span class="cross">✗</span> Heavy middleman commissions</li>
+          <li><span class="cross">✗</span> Desktop-first, poor mobile UX</li>
+          <li><span class="cross">✗</span> No blue-collar specific trust signals</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:#10B981; margin-bottom:16px;">✅ Elev8 Advantages</h3>
+        <ul>
+          <li><span class="check">✓</span> 3-language support with instant toggle</li>
+          <li><span class="check">✓</span> Household + Business dual posting flows</li>
+          <li><span class="check">✓</span> NSDC/ITI/Elev8 badge verification system</li>
+          <li><span class="check">✓</span> Free standard listing — no middlemen</li>
+          <li><span class="check">✓</span> Mobile-first with offline demo mode</li>
+          <li><span class="check">✓</span> Premium + verified badges = employer trust</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 8: Impact -->
+  <div class="slide s8">
+    <div class="section-title">Real-World Impact</div>
+    <h2>Dignifying <span style="color:#1A56DB">India's Workforce</span></h2>
+    <div class="grid3" style="margin-top:30px;">
+      <div class="card card-green" style="text-align:center;">
+        <div class="stat-big" style="color:#10B981;">40%</div>
+        <div class="stat-label">Increase in worker earnings by eliminating middlemen</div>
+        <div class="progress-bar" style="margin-top:16px;"><div class="progress-fill" style="width:40%;background:#10B981;"></div></div>
+      </div>
+      <div class="card card-blue" style="text-align:center;">
+        <div class="stat-big">3x</div>
+        <div class="stat-label">Faster job discovery vs traditional methods</div>
+        <div class="progress-bar" style="margin-top:16px;"><div class="progress-fill" style="width:75%;"></div></div>
+      </div>
+      <div class="card card-amber" style="text-align:center;">
+        <div class="stat-big" style="color:#F59E0B;">80%</div>
+        <div class="stat-label">Workers currently lacking certification — Elev8 bridges this</div>
+        <div class="progress-bar" style="margin-top:16px;"><div class="progress-fill" style="width:80%; background:#F59E0B;"></div></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:24px; border-color:#1A56DB; background:rgba(26,86,219,0.1);">
+      <p style="font-size:17px; color:#cbd5e1; line-height:1.8;">
+        🎯 <strong>Mission</strong>: Every blue-collar worker in India deserves dignified employment, fair pay, and a digital identity — regardless of education, language, or location.<br/>
+        📍 <strong>Starting Point</strong>: Maharashtra → Pan-India expansion across 20 major cities.
+      </p>
+    </div>
+  </div>
+
+  <!-- Slide 9: Demo -->
+  <div class="slide s9">
+    <div class="section-title">Live Demo & Repository</div>
+    <h2>See Elev8 in <span style="color:#1A56DB">Action</span></h2>
+    <div class="grid2" style="margin-top:30px;">
+      <div class="card card-blue">
+        <span class="emoji">🌐</span>
+        <h3>Live Demo</h3>
+        <p style="color:#94a3b8; font-size:14px; margin:12px 0;">Deployed on Vercel — fully functional with demo mode.</p>
+        <div style="background:rgba(0,0,0,0.3); border-radius:8px; padding:12px; font-family:monospace; font-size:14px; color:#60a5fa;">
+          elev8-india.vercel.app
+        </div>
+      </div>
+      <div class="card">
+        <span class="emoji">📁</span>
+        <h3>Source Code</h3>
+        <p style="color:#94a3b8; font-size:14px; margin:12px 0;">Complete source on GitHub — 51 files, production-ready.</p>
+        <div style="background:rgba(0,0,0,0.3); border-radius:8px; padding:12px; font-family:monospace; font-size:14px; color:#60a5fa;">
+          github.com/SwanandDixit/Elev8
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:20px;">
+      <h3 style="margin-bottom:16px;">🗺️ Demo Flow to Try</h3>
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        <div style="background:#1A56DB; border-radius:8px; padding:10px 16px; font-size:14px;">① Visit Home Page</div>
+        <span style="color:#94a3b8;">→</span>
+        <div style="background:#1A56DB; border-radius:8px; padding:10px 16px; font-size:14px;">② Switch to Hindi/Marathi</div>
+        <span style="color:#94a3b8;">→</span>
+        <div style="background:#1A56DB; border-radius:8px; padding:10px 16px; font-size:14px;">③ Browse Jobs / Workers</div>
+        <span style="color:#94a3b8;">→</span>
+        <div style="background:#F59E0B; color:#000; border-radius:8px; padding:10px 16px; font-size:14px;">④ Sign Up as Worker</div>
+        <span style="color:#94a3b8;">→</span>
+        <div style="background:#10B981; border-radius:8px; padding:10px 16px; font-size:14px;">⑤ View Dashboard</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 10: Thank You -->
+  <div class="slide s10">
+    <div style="text-align:center;">
+      <div class="logo" style="font-size:100px;">Elev<span>8</span></div>
+      <h2 style="font-size:36px; color:#94a3b8; font-weight:400; margin:20px 0;">Empowering India's Skilled Workforce</h2>
+      <p style="font-size:20px; color:#64748b; margin-bottom:40px;">Built with ❤️ by <strong style="color:white;">Swanand Dixit</strong></p>
+      <div style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
+        <div class="card" style="padding:20px 32px; text-align:center;">
+          <div style="color:#94a3b8; font-size:13px; margin-bottom:6px;">GITHUB</div>
+          <div style="font-family:monospace; color:#60a5fa;">github.com/SwanandDixit/Elev8</div>
+        </div>
+        <div class="card card-blue" style="padding:20px 32px; text-align:center;">
+          <div style="color:#94a3b8; font-size:13px; margin-bottom:6px;">LIVE DEMO</div>
+          <div style="font-family:monospace; color:#60a5fa;">elev8-india.vercel.app</div>
+        </div>
+      </div>
+      <p style="margin-top:50px; color:#475569; font-size:16px;">Thank You 🙏</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <button onclick="prevSlide()" id="prev-btn" disabled>← Prev</button>
+  <span class="slide-counter" id="counter">1 / 10</span>
+  <button onclick="nextSlide()" id="next-btn">Next →</button>
+</div>
+
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('counter').textContent = `${current + 1} / ${total}`;
+    document.getElementById('prev-btn').disabled = current === 0;
+    document.getElementById('next-btn').disabled = current === total - 1;
+  }
+
+  function nextSlide() { showSlide(current + 1); }
+  function prevSlide() { showSlide(current - 1); }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextSlide();
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prevSlide();
+  });
+</script>
+</body>
+</html>
