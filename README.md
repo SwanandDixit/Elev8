@@ -18,6 +18,24 @@
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" />
 </p>
 
+<p align="center">
+  <a href="https://elev8888.netlify.app"><strong>🌐 Live Demo (elev8888.netlify.app)</strong></a> •
+  <a href="https://screenrec.com/share/JOiMCEvVLH"><strong>🎥 Watch Demo Video</strong></a> •
+  <a href="https://github.com/SwanandDixit/Elev8"><strong>💻 GitHub Repository</strong></a>
+</p>
+
+---
+
+## 🔗 Quick Submission Links
+
+| Deliverable | URL / Link |
+| :--- | :--- |
+| 🌐 **Live Working Demo** | [https://elev8888.netlify.app](https://elev8888.netlify.app) |
+| 🎥 **Demo Video Recording** | [https://screenrec.com/share/JOiMCEvVLH](https://screenrec.com/share/JOiMCEvVLH) |
+| 💻 **Source Code Repository** | [https://github.com/SwanandDixit/Elev8](https://github.com/SwanandDixit/Elev8) |
+| 📄 **Full Documentation** | [Elev8_Documentation.html](./Elev8_Documentation.html) (Open & Export to PDF) |
+| 📊 **Presentation Deck** | [Elev8_Presentation.html](./Elev8_Presentation.html) (Interactive 10-Slide Deck) |
+
 ---
 
 ## 🎯 Problem Statement
