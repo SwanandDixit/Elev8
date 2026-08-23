@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Elev8 — Project Documentation</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #1f2937;
+    background: #fff;
+    padding: 0;
+  }
+
+  /* Print styles */
+  @media print {
+    .no-print { display: none; }
+    .page-break { page-break-before: always; }
+    body { font-size: 12px; }
+    .cover { min-height: 100vh; }
+  }
+
+  /* Cover page */
+  .cover {
+    background: linear-gradient(135deg, #1A56DB 0%, #0f172a 100%);
+    color: white;
+    padding: 80px 60px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .cover-tag {
+    background: rgba(245,158,11,0.2);
+    border: 1px solid #F59E0B;
+    color: #F59E0B;
+    display: inline-block;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 30px;
+  }
+  .cover h1 { font-size: 72px; font-weight: 900; margin-bottom: 10px; }
+  .cover h1 span { color: #F59E0B; }
+  .cover h2 { font-size: 24px; font-weight: 400; color: #94a3b8; margin-bottom: 30px; }
+  .cover-desc { font-size: 18px; color: #cbd5e1; max-width: 600px; line-height: 1.7; margin-bottom: 50px; }
+  .cover-meta { display: flex; gap: 40px; flex-wrap: wrap; }
+  .cover-meta div { }
+  .cover-meta label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #64748b; display: block; margin-bottom: 4px; }
+  .cover-meta value { font-size: 16px; font-weight: 600; color: white; }
+  .cover-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 40px; }
+  .badge { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+
+  /* Content pages */
+  .content { max-width: 900px; margin: 0 auto; padding: 60px 40px; }
+
+  /* TOC */
+  .toc { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 30px 40px; margin-bottom: 60px; }
+  .toc h2 { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #1A56DB; }
+  .toc ol { padding-left: 20px; }
+  .toc li { padding: 5px 0; color: #374151; }
+  .toc a { color: #1A56DB; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* Sections */
+  .section { margin-bottom: 50px; }
+  .section-num { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: #1A56DB; margin-bottom: 8px; }
+  h2.heading { font-size: 28px; font-weight: 800; color: #111827; margin-bottom: 16px; border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; }
+  h3 { font-size: 18px; font-weight: 700; color: #1f2937; margin: 24px 0 10px; }
+  p { margin-bottom: 14px; color: #374151; }
+
+  /* Cards */
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .card-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 20px 0; }
+  .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; }
+  .card-blue { background: #eff6ff; border-color: #bfdbfe; }
+  .card-green { background: #f0fdf4; border-color: #bbf7d0; }
+  .card-amber { background: #fffbeb; border-color: #fde68a; }
+  .card-red { background: #fef2f2; border-color: #fecaca; }
+  .card h4 { font-size: 15px; font-weight: 700; margin-bottom: 8px; color: #111827; }
+  .card p { font-size: 13px; margin: 0; color: #6b7280; }
+
+  /* Stat boxes */
+  .stats-row { display: flex; gap: 16px; margin: 20px 0; }
+  .stat-box { flex: 1; background: #1A56DB; color: white; border-radius: 10px; padding: 20px; text-align: center; }
+  .stat-box .num { font-size: 36px; font-weight: 900; }
+  .stat-box .lbl { font-size: 12px; color: #bfdbfe; margin-top: 4px; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; }
+  th { background: #1A56DB; color: white; padding: 10px 14px; text-align: left; font-weight: 600; }
+  td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; }
+  tr:nth-child(even) td { background: #f8fafc; }
+
+  /* Code */
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px; border-radius: 10px; font-size: 13px; overflow-x: auto; margin: 16px 0; }
+  code { background: #f1f5f9; color: #1A56DB; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+
+  /* List */
+  ul.styled, ol.styled { padding-left: 20px; margin: 12px 0; }
+  ul.styled li, ol.styled li { padding: 5px 0; color: #374151; }
+  .check::before { content: "✅ "; }
+  .cross::before { content: "❌ "; }
+  .arrow::before { content: "→ "; color: #1A56DB; font-weight: 700; }
+
+  /* Architecture diagram */
+  .arch { border: 2px solid #e2e8f0; border-radius: 12px; padding: 30px; text-align: center; margin: 20px 0; }
+  .arch-layer { background: #eff6ff; border: 2px solid #1A56DB; border-radius: 8px; padding: 14px 20px; margin: 8px auto; max-width: 500px; font-weight: 600; font-size: 14px; color: #1e40af; }
+  .arch-arrow { font-size: 24px; color: #1A56DB; margin: 4px 0; display: block; }
+
+  /* Footer */
+  .doc-footer { background: #0f172a; color: #64748b; text-align: center; padding: 30px; margin-top: 60px; font-size: 13px; }
+
+  /* Print button */
+  .print-btn {
+    position: fixed; top: 20px; right: 20px;
+    background: #1A56DB; color: white; border: none;
+    padding: 12px 24px; border-radius: 8px; cursor: pointer;
+    font-weight: 600; font-size: 14px; z-index: 999;
+    box-shadow: 0 4px 12px rgba(26,86,219,0.3);
+  }
+  .print-btn:hover { background: #1040B0; }
+
+  .highlight { background: #fffbeb; border-left: 4px solid #F59E0B; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  .info-box { background: #eff6ff; border-left: 4px solid #1A56DB; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  .page-break { border: none; border-top: 3px dashed #e2e8f0; margin: 50px 0; }
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">🖨️ Export as PDF</button>
+
+<!-- COVER PAGE -->
+<div class="cover">
+  <div class="cover-tag">🏆 Hackathon Project Documentation</div>
+  <h1>Elev<span>8</span></h1>
+  <h2>Skill-Based Employment Platform for Blue-Collar Workers in India</h2>
+  <p class="cover-desc">
+    A production-ready, multilingual, mobile-first web platform that directly connects India's 500M+ skilled blue-collar workers with household and business employers — eliminating middlemen, building trust through skill verification, and speaking the user's language.
+  </p>
+  <div class="cover-meta">
+    <div><label>Developer</label><value>Swanand Dixit</value></div>
+    <div><label>Category</label><value>Social Impact / EdTech / Employment</value></div>
+    <div><label>Version</label><value>1.0.0 — Production</value></div>
+    <div><label>Year</label><value>2024</value></div>
+  </div>
+  <div class="cover-badges">
+    <span class="badge">React 18</span>
+    <span class="badge">TypeScript</span>
+    <span class="badge">Vite 8</span>
+    <span class="badge">Tailwind CSS v4</span>
+    <span class="badge">Supabase</span>
+    <span class="badge">Multilingual EN/HI/MR</span>
+    <span class="badge">Mobile-First</span>
+    <span class="badge">Deployed on Netlify</span>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <h2>📋 Table of Contents</h2>
+    <ol class="styled">
+      <li><a href="#problem">Problem Statement</a></li>
+      <li><a href="#solution">Proposed Solution</a></li>
+      <li><a href="#market">Market Opportunity</a></li>
+      <li><a href="#features">Features & Functionality</a></li>
+      <li><a href="#tech">Technology Stack</a></li>
+      <li><a href="#architecture">System Architecture</a></li>
+      <li><a href="#database">Database Schema</a></li>
+      <li><a href="#security">Security Implementation</a></li>
+      <li><a href="#i18n">Multilingual System</a></li>
+      <li><a href="#pages">Pages & Navigation</a></li>
+      <li><a href="#innovation">Innovation & USP</a></li>
+      <li><a href="#scalability">Scalability Plan</a></li>
+      <li><a href="#impact">Real-World Impact</a></li>
+      <li><a href="#setup">Setup & Installation</a></li>
+      <li><a href="#links">Links & Resources</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. PROBLEM -->
+  <div class="section" id="problem">
+    <div class="section-num">Section 1</div>
+    <h2 class="heading">Problem Statement</h2>
+    <p>India's blue-collar workforce — comprising electricians, plumbers, carpenters, cooks, cleaners, drivers, security guards, painters, welders, and masons — constitutes over <strong>500 million workers</strong>. Despite being the backbone of the Indian economy, this workforce faces severe systemic challenges in accessing dignified, fair, and direct employment opportunities.</p>
+
+    <div class="card-grid">
+      <div class="card card-red">
+        <h4>💸 Exploitative Middlemen</h4>
+        <p>Local labour contractors and agents charge 40–60% commission from workers' earnings. Workers have no transparency on pay, no contracts, and no recourse.</p>
+      </div>
+      <div class="card card-red">
+        <h4>🌐 Language Exclusion</h4>
+        <p>All major employment platforms in India are built exclusively in English, effectively barring 400M+ Hindi and Marathi-speaking workers from digital job discovery.</p>
+      </div>
+      <div class="card card-red">
+        <h4>🔒 No Trust Infrastructure</h4>
+        <p>Employers cannot verify worker credentials, skills, or background. This lack of trust leads to lower wages, exploitation, and hesitation in hiring.</p>
+      </div>
+      <div class="card card-red">
+        <h4>🏠 Household Gap</h4>
+        <p>Millions of household employers (needing maids, cooks, drivers) have no safe, reliable digital platform. They rely entirely on word-of-mouth or risky classifieds.</p>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <strong>Root Cause:</strong> The Indian digital employment ecosystem is designed for white-collar workers. Blue-collar workers have been systematically ignored, creating a massive opportunity gap.
+    </div>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- 2. SOLUTION -->
+  <div class="section" id="solution">
+    <div class="section-num">Section 2</div>
+    <h2 class="heading">Proposed Solution — Elev8</h2>
+    <p>Elev8 is a <strong>production-ready, full-stack, multilingual employment platform</strong> built specifically for India's blue-collar workforce. It addresses every identified problem simultaneously through thoughtful design and engineering.</p>
+
+    <div class="card-grid-3">
+      <div class="card card-blue">
+        <h4>🌐 Multilingual First</h4>
+        <p>English, हिंदी, मराठी — instant switching, no page reload. Devanagari typography fully rendered.</p>
+      </div>
+      <div class="card card-blue">
+        <h4>🛡️ Skill Verification</h4>
+        <p>Partner certificates from NSDC, ITI, Udemy + Elev8 practical assessments. Verified badges shown on profiles.</p>
+      </div>
+      <div class="card card-blue">
+        <h4>🏠 Dual Posting</h4>
+        <p>Separate flows for Household and Business employers. Address privacy protected for household requirements.</p>
+      </div>
+      <div class="card card-blue">
+        <h4>📱 Mobile-First</h4>
+        <p>Works on ₹5,000 Android phones. Bottom navigation, touch-optimized 44px targets, offline demo mode.</p>
+      </div>
+      <div class="card card-blue">
+        <h4>🔐 Secure Auth</h4>
+        <p>Supabase + Google OAuth. Role-based access control: Worker / Employer / Admin with protected routes.</p>
+      </div>
+      <div class="card card-blue">
+        <h4>⚡ Zero Middlemen</h4>
+        <p>Free direct listing. Workers keep 100% of their earnings. Premium listing for ₹299/month for boosted visibility.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- 3. MARKET -->
+  <div class="section" id="market">
+    <div class="section-num">Section 3</div>
+    <h2 class="heading">Market Opportunity</h2>
+
+    <div class="stats-row">
+      <div class="stat-box"><div class="num">500M+</div><div class="lbl">Blue-collar workers in India</div></div>
+      <div class="stat-box" style="background:#10B981;"><div class="num">₹12T</div><div class="lbl">Annual informal labour market value</div></div>
+      <div class="stat-box" style="background:#F59E0B; color:#000;"><div class="num" style="color:#000;">80%</div><div class="lbl" style="color:#78350f;">Lack certified skills recognition</div></div>
+      <div class="stat-box" style="background:#8B5CF6;"><div class="num">400M+</div><div class="lbl">Hindi/Marathi speaking workers excluded from English platforms</div></div>
+    </div>
+
+    <p>The Indian blue-collar employment platform market is largely untapped. Existing players like UrbanClap/Urban Company focus on aggregating services (not empowering workers), charge heavy commissions, and operate only in English. <strong>No existing platform simultaneously provides multilingual access, household employer support, and skill certification.</strong></p>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- 4. FEATURES -->
+  <div class="section" id="features">
+    <div class="section-num">Section 4</div>
+    <h2 class="heading">Features & Functionality</h2>
+
+    <h3>4.1 Core User Flows</h3>
+    <table>
+      <tr><th>User Type</th><th>Primary Flow</th><th>Key Actions</th></tr>
+      <tr><td>Worker</td><td>Register → Build Profile → Get Verified → Apply for Jobs</td><td>Register, upload certs, search jobs, apply, message employers</td></tr>
+      <tr><td>Employer (Business)</td><td>Sign Up → Post Job → Review Applications → Hire</td><td>Post requirements, browse workers, view profiles, message workers</td></tr>
+      <tr><td>Employer (Household)</td><td>Sign Up → Post Household Requirement → Get Matched</td><td>Private address posting, browse verified workers, contact directly</td></tr>
+      <tr><td>Admin</td><td>Monitor → Approve Certs → Moderate Content</td><td>User management, certification queue, flagged content review</td></tr>
+    </table>
+
+    <h3>4.2 All Platform Pages</h3>
+    <table>
+      <tr><th>Page</th><th>Route</th><th>Key Features</th></tr>
+      <tr><td>Home</td><td>/</td><td>Animated hero, live counter stats, category grid, featured workers, testimonials, CTA</td></tr>
+      <tr><td>Find Work</td><td>/find-work</td><td>Search by title/skill, filter by category/type/pay, sort by newest/highest pay, apply in 1-click</td></tr>
+      <tr><td>Browse Workers</td><td>/browse-workers</td><td>Directory with availability filter, skill tags, rating display, verified badges</td></tr>
+      <tr><td>Worker Profile</td><td>/worker/:id</td><td>Full bio, skill tags, reviews, certifications, availability, hire & message CTA</td></tr>
+      <tr><td>Post Requirement</td><td>/post-requirements</td><td>3-step wizard: Details → Plan (Free/₹299 Premium) → Preview → Submit</td></tr>
+      <tr><td>Register Worker</td><td>/register-worker</td><td>4-step onboarding: Personal → Professional → Preferences → Account</td></tr>
+      <tr><td>Certifications</td><td>/certifications</td><td>3 tabs: Get Certified (partner + Elev8), My Certificates, Browse Certified Workers</td></tr>
+      <tr><td>About</td><td>/about</td><td>Mission, vision, problem stats, values, timeline, team</td></tr>
+      <tr><td>Sign In / Sign Up</td><td>/sign-in, /sign-up</td><td>Email/password + Google OAuth, role toggle (Worker/Employer)</td></tr>
+      <tr><td>Worker Dashboard</td><td>/dashboard/worker</td><td>Stats, profile completion, job matches, applications, saved jobs, messages</td></tr>
+      <tr><td>Employer Dashboard</td><td>/dashboard/employer</td><td>Active listings, applicants, saved workers, messages</td></tr>
+      <tr><td>Admin Panel</td><td>/admin</td><td>Dark sidebar, user stats, certification queue, flagged content management</td></tr>
+    </table>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- 5. TECH STACK -->
+  <div class="section" id="tech">
+    <div class="section-num">Section 5</div>
+    <h2 class="heading">Technology Stack</h2>
+
+    <table>
+      <tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr>
+      <tr><td>Frontend Framework</td><td>React 18</td><td>Component-based UI with hooks and concurrent features</td></tr>
+      <tr><td>Build Tool</td><td>Vite 8</td><td>Extremely fast dev server and production bundler</td></tr>
+      <tr><td>Language</td><td>TypeScript 5</td><td>Type safety, better developer experience, fewer runtime errors</td></tr>
+      <tr><td>Styling</td><td>Tailwind CSS v4</td><td>Utility-first CSS with custom design tokens</td></tr>
+      <tr><td>State Management</td><td>Zustand</td><td>Lightweight global state for auth and preferences</td></tr>
+      <tr><td>Routing</td><td>React Router v6</td><td>Client-side routing with protected route guards</td></tr>
+      <tr><td>Forms</td><td>React Hook Form + Zod</td><td>Performant forms with schema validation</td></tr>
+      <tr><td>Icons</td><td>Lucide React</td><td>Clean, consistent SVG icon system</td></tr>
+      <tr><td>Internationalization</td><td>react-i18next</td><td>3-language support with instant switching</td></tr>
+      <tr><td>Backend / Auth / DB</td><td>Supabase</td><td>PostgreSQL database, authentication, real-time, storage</td></tr>
+      <tr><td>Payments</td><td>Razorpay</td><td>Premium listing payments (integration-ready)</td></tr>
+      <tr><td>Deployment</td><td>Netlify</td><td>Global CDN, instant deploys from GitHub, SPA support</td></tr>
+    </table>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- 6. ARCHITECTURE -->
+  <div class="section" id="architecture">
+    <div class="section-num">Section 6</div>
+    <h2 class="heading">System Architecture</h2>
+
+    <div class="arch">
+      <div class="arch-layer" style="background:#eff6ff; border-color:#1A56DB;">
+        👤 User (Browser / Mobile)
+      </div>
+      <span class="arch-arrow">↕ HTTPS / TLS</span>
+      <div class="arch-layer" style="background:#fef9c3; border-color:#ca8a04;">
+        🌐 Netlify CDN Edge Network<br/>
+        <small style="font-weight:400; color:#6b7280;">Static assets served globally from edge locations</small>
+      </div>
+      <span class="arch-arrow">↕</span>
+      <div class="arch-layer" style="background:#eff6ff; border-color:#1A56DB;">
+        ⚛️ React 18 SPA (Vite Build)<br/>
+        <small style="font-weight:400; color:#6b7280;">TypeScript + Tailwind CSS v4 + Zustand + React Router v6</small>
+      </div>
+      <span class="arch-arrow">↕ Supabase JS SDK (HTTPS)</span>
+      <div class="arch-layer" style="background:#f0fdf4; border-color:#10B981;">
+        🔒 Supabase Auth (JWT + Google OAuth)<br/>
+        <small style="font-weight:400; color:#6b7280;">Token validation + RLS enforcement</small>
+      </div>
+      <span class="arch-arrow">↕</span>
+      <div class="arch-layer" style="background:#f0fdf4; border-color:#10B981;">
+        🗄️ PostgreSQL Database (Supabase)<br/>
+        <small style="font-weight:400; color:#6b7280;">Row Level Security | PgBouncer | Real-time subscriptions</small>
+      </div>
+    </div>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- 7. DATABASE -->
+  <div class="section" id="database">
+    <div class="section-num">Section 7</div>
+    <h2 class="heading">Database Schema</h2>
+    <p>The database is structured around 8 core tables with proper relationships, foreign keys, and Row Level Security policies on every table.</p>
+
+    <table>
+      <tr><th>Table</th><th>Purpose</th><th>Key Fields</th></tr>
+      <tr><td>users</td><td>Core user account</td><td>id, email, role (worker/employer/admin), lang_preference</td></tr>
+      <tr><td>worker_profiles</td><td>Worker information</td><td>user_id, title, bio, skills[], hourly_rate, rating, availability_status, is_premium</td></tr>
+      <tr><td>employer_profiles</td><td>Employer information</td><td>user_id, company_name, location, is_verified</td></tr>
+      <tr><td>job_listings</td><td>Posted requirements</td><td>employer_id, type (business/household), category, pay_rate, pay_type, urgency, status</td></tr>
+      <tr><td>applications</td><td>Job applications</td><td>job_id, worker_id, status (pending/accepted/rejected), cover_note</td></tr>
+      <tr><td>certifications</td><td>Skill certificates</td><td>worker_id, cert_name, type (partner/elev8), partner_name, status (pending/approved/rejected)</td></tr>
+      <tr><td>reviews</td><td>Worker reviews</td><td>worker_id, reviewer_id, rating (1-5), comment, job_id</td></tr>
+      <tr><td>messages</td><td>In-app messaging</td><td>sender_id, receiver_id, content, job_id, is_read, sent_at</td></tr>
+    </table>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- 8. SECURITY -->
+  <div class="section" id="security">
+    <div class="section-num">Section 8</div>
+    <h2 class="heading">Security Implementation</h2>
+
+    <div class="card-grid">
+      <div class="card card-green">
+        <h4>🔐 Row Level Security (RLS)</h4>
+        <p>Every Supabase table has RLS policies. Workers can only read/write their own data. Employers can only see their own listings and applications.</p>
+      </div>
+      <div class="card card-green">
+        <h4>🎫 JWT Authentication</h4>
+        <p>All API requests carry a signed JWT token from Supabase Auth. Tokens expire after 1 hour and are automatically refreshed client-side.</p>
+      </div>
+      <div class="card card-green">
+        <h4>🛡️ Role-Based Access Control</h4>
+        <p>Three roles: Worker, Employer, Admin. Protected routes automatically redirect unauthorized users. Role stored securely in the users table.</p>
+      </div>
+      <div class="card card-green">
+        <h4>🔒 No Credentials in Code</h4>
+        <p>All sensitive keys stored in environment variables (.env). .env is in .gitignore — never committed to source control.</p>
+      </div>
+      <div class="card card-green">
+        <h4>📱 Address Privacy</h4>
+        <p>Household employer addresses are never shown publicly. Contact is only made through the in-app messaging system after connection.</p>
+      </div>
+      <div class="card card-green">
+        <h4>🚨 Content Moderation</h4>
+        <p>UI prevents phone numbers/emails in public job descriptions. Admin panel includes flagged content review queue.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- 9. I18N -->
+  <div class="section" id="i18n">
+    <div class="section-num">Section 9</div>
+    <h2 class="heading">Multilingual System</h2>
+    <p>Elev8 is built with language access as a first-class feature, not an afterthought. The internationalization system uses <code>react-i18next</code> with the following architecture:</p>
+
+    <div class="info-box">
+      <strong>Three Languages Supported:</strong> English (EN), Hindi — हिंदी (HI), Marathi — मराठी (MR)
+    </div>
+
+    <h3>How It Works</h3>
+    <ul class="styled">
+      <li class="arrow">Translation JSON files loaded from <code>/public/locales/{language}.json</code></li>
+      <li class="arrow">Language detected automatically from browser settings via <code>i18next-browser-languagedetector</code></li>
+      <li class="arrow">Selected language persisted across sessions in <code>localStorage</code></li>
+      <li class="arrow">Instant toggle via <code>LanguageSwitcher</code> component — zero page reload</li>
+      <li class="arrow">Devanagari script rendered using <code>Noto Sans Devanagari</code> Google Font</li>
+      <li class="arrow">Font automatically switches based on active language via CSS <code>:lang(hi)</code> selector</li>
+    </ul>
+
+    <h3>Coverage</h3>
+    <p>All UI text, labels, buttons, error messages, navigation items, form placeholders, and descriptive content are fully translated across all 3 languages. Each translation file contains 200+ keys.</p>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- 10. INNOVATION -->
+  <div class="section" id="innovation">
+    <div class="section-num">Section 10</div>
+    <h2 class="heading">Innovation & Unique Selling Points</h2>
+
+    <table>
+      <tr><th>Feature</th><th>Elev8</th><th>Existing Platforms</th></tr>
+      <tr><td>Language Support</td><td>✅ EN + Hindi + Marathi (instant switch)</td><td>❌ English only</td></tr>
+      <tr><td>Household Employers</td><td>✅ Dedicated dual posting flow</td><td>❌ Business focus only</td></tr>
+      <tr><td>Skill Certification</td><td>✅ NSDC + ITI + Elev8 badges</td><td>❌ No verification</td></tr>
+      <tr><td>Middlemen</td><td>✅ Zero — direct connection</td><td>❌ 40–60% commission</td></tr>
+      <tr><td>Mobile Design</td><td>✅ Bottom nav, filter sheets, 44px targets</td><td>❌ Desktop-ported</td></tr>
+      <tr><td>Free Listing</td><td>✅ Standard plan completely free</td><td>❌ Subscription required</td></tr>
+      <tr><td>Offline/Demo Mode</td><td>✅ Works without backend credentials</td><td>N/A</td></tr>
+      <tr><td>Admin Controls</td><td>✅ Certification queue + content moderation</td><td>Limited</td></tr>
+    </table>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- 11. SCALABILITY -->
+  <div class="section" id="scalability">
+    <div class="section-num">Section 11</div>
+    <h2 class="heading">Scalability Plan</h2>
+
+    <h3>Phase 1 — MVP (Current)</h3>
+    <p>Maharashtra-focused launch with core features: job posting, worker profiles, skill verification, and multilingual support. Targeting 10,000 workers and 5,000 employers in the first 6 months.</p>
+
+    <h3>Phase 2 — Pan-India Expansion</h3>
+    <ul class="styled">
+      <li class="arrow">Expand to 5 additional languages (Tamil, Telugu, Bengali, Gujarati, Kannada)</li>
+      <li class="arrow">Launch in 20 major Indian cities</li>
+      <li class="arrow">Integrate SMS-based job alerts for feature phone users</li>
+      <li class="arrow">Partner with municipal corporations for migrant worker support</li>
+    </ul>
+
+    <h3>Phase 3 — Platform Ecosystem</h3>
+    <ul class="styled">
+      <li class="arrow">Elev8 Worker App (Flutter mobile app)</li>
+      <li class="arrow">AI-powered job matching engine</li>
+      <li class="arrow">Integrated payroll and UPI-based payment processing</li>
+      <li class="arrow">Insurance and social security linking for verified workers</li>
+      <li class="arrow">API for B2B enterprise bulk hiring</li>
+    </ul>
+
+    <h3>Technical Scalability</h3>
+    <div class="card-grid">
+      <div class="card">
+        <h4>Database</h4>
+        <p>Supabase (PostgreSQL) with PgBouncer connection pooling handles millions of concurrent connections. Read replicas for high-traffic queries.</p>
+      </div>
+      <div class="card">
+        <h4>Frontend</h4>
+        <p>Stateless React SPA on Netlify CDN — scales infinitely. Code splitting via Vite for faster load times.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- 12. IMPACT -->
+  <div class="section" id="impact">
+    <div class="section-num">Section 12</div>
+    <h2 class="heading">Real-World Impact</h2>
+
+    <div class="highlight">
+      <strong>Mission:</strong> Every blue-collar worker in India deserves dignified employment, fair pay, recognized skills, and digital identity — regardless of education, language, or location.
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-green">
+        <h4>💰 Economic Impact</h4>
+        <p>Eliminating middlemen saves workers 40–60% of their earnings. A worker earning ₹500/day retains ₹200–300 more per day — ₹6,000–9,000/month extra income.</p>
+      </div>
+      <div class="card card-blue">
+        <h4>📚 Skill Development</h4>
+        <p>Certification system encourages skill upgrading. Verified workers earn 25–40% higher wages. Partnership with NSDC & ITI creates a recognized credential pathway.</p>
+      </div>
+      <div class="card card-amber">
+        <h4>🌐 Digital Inclusion</h4>
+        <p>Hindi + Marathi support brings 400M+ speakers into the digital workforce economy for the first time. Mobile-first design ensures access on ₹5,000 phones.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- 13. SETUP -->
+  <div class="section" id="setup">
+    <div class="section-num">Section 13</div>
+    <h2 class="heading">Setup & Installation</h2>
+
+    <h3>Prerequisites</h3>
+    <ul class="styled">
+      <li class="check">Node.js v18.x or higher</li>
+      <li class="check">npm v9.x or higher</li>
+      <li class="check">Git</li>
+    </ul>
+
+    <h3>Installation Steps</h3>
+    <pre>
+# 1. Clone the repository
+git clone https://github.com/SwanandDixit/Elev8.git
+cd Elev8
+
+# 2. Install dependencies
+npm install
+
+# 3. Set up environment variables
+cp .env.example .env
+# Edit .env with your Supabase credentials
+# (App runs in demo mode if no credentials provided)
+
+# 4. Start development server
+npm run dev
+# Visit: http://localhost:5173
+
+# 5. Build for production
+npm run build</pre>
+
+    <h3>Environment Variables</h3>
+    <pre>
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_RAZORPAY_KEY=your_razorpay_key  # optional</pre>
+
+    <div class="info-box">
+      <strong>💡 Demo Mode:</strong> If no Supabase credentials are provided, Elev8 automatically activates Demo Mode — all features remain fully explorable using localStorage-based mock sessions. No backend required.
+    </div>
+  </div>
+
+  <!-- 14. LINKS -->
+  <div class="section" id="links">
+    <div class="section-num">Section 14</div>
+    <h2 class="heading">Links & Resources</h2>
+
+    <table>
+      <tr><th>Resource</th><th>URL</th></tr>
+      <tr><td>🌐 Live Demo</td><td><a href="https://elev8888.netlify.app" style="color:#1A56DB;">https://elev8888.netlify.app</a></td></tr>
+      <tr><td>💻 Source Code</td><td><a href="https://github.com/SwanandDixit/Elev8" style="color:#1A56DB;">https://github.com/SwanandDixit/Elev8</a></td></tr>
+      <tr><td>📊 Presentation</td><td>Elev8_Presentation.html (included in repo)</td></tr>
+      <tr><td>🎥 Demo Video</td><td>Submitted separately</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="doc-footer">
+  <p>Elev8 — Skill-Based Employment Platform for Blue-Collar Workers in India</p>
+  <p style="margin-top:8px;">Built by <strong style="color:white;">Swanand Dixit</strong> | Hackathon 2024 | MIT License</p>
+</div>
+
+</body>
+</html>
