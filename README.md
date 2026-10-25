@@ -95,11 +95,21 @@ Elev8 is a **production-ready, skill-based employment platform** designed specif
 - Hourly rates, travel distance, work preferences
 - Premium listings for boosted visibility
 
-### 📋 Multi-Step Posting Flow
-- **3-Step Job Posting**: Details → Plan (Standard/Premium) → Preview
-- **4-Step Worker Registration**: Personal → Professional → Preferences → Account
+### ⚖️ Real-Time Price Negotiation & Market Estimator (New)
+- **Market Price Estimation Engine**: Suggests accurate Indian market wage ranges (hourly, daily, monthly, fixed) across all trades.
+- **Urgency & Emergency Surcharge**: Automatic **+20% (Urgent)** and **+40% (Emergency/Very Urgent)** pricing calculations.
+- **Interactive Offer/Counter-Offer UI**: Workers propose counter-rates with rationales; employers can accept, decline, or counter in real time.
+- **Full Offer History Timeline**: Transparent record of proposals between workers and employers.
 
----
+### 👥 Dual-Sided Platform & Customer Profiles (New)
+- **Role-Distinct Onboarding**: Dedicated signup & login flows tailored for Workers (`👷`) and Customers/Employers (`🏠`).
+- **Customer Dashboard**: Complete management of job requirements, incoming applicants, rate negotiations, and worker profiles.
+- **Rich Customer Profiles**: Photo upload, task/household description, and contact info so workers can prepare adequately before arriving.
+
+### 📍 GPS & Location-Aware Job Matching
+- **Haversine Distance Matching**: Real-time GPS radius filter (5km, 10km, 25km, 50km) and "Near Me" instant detection.
+- **Distance Badges**: Live distance calculations showing how close a job is to the worker.
+
 
 ## 📸 Screenshots
 

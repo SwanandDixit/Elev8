@@ -1,15 +1,13 @@
 import { create } from 'zustand';
-import { supabase } from '../lib/supabase';
+import { supabase, isDemo } from '../lib/supabase';
 import type { User, UserRole } from '../types';
-
-// Check if we have real Supabase credentials
-const isDemo = !import.meta.env.VITE_SUPABASE_URL || 
-  import.meta.env.VITE_SUPABASE_URL === 'https://placeholder.supabase.co';
 
 interface AuthState {
   user: User | null;
   session: unknown | null;
   role: UserRole | null;
+  workerProfileId: string | null;   // worker_profiles.id
+  employerProfileId: string | null; // employer_profiles.id
   loading: boolean;
   initialized: boolean;
   signIn: (email: string, password: string) => Promise<void>;
@@ -19,24 +17,21 @@ interface AuthState {
   initialize: () => Promise<void>;
 }
 
-// Helper: persist demo user to localStorage
+// ── Demo mode helpers ─────────────────────────────────────────
 const DEMO_KEY = 'elev8_demo_user';
 
-function saveDemoUser(user: User, role: UserRole) {
-  localStorage.setItem(DEMO_KEY, JSON.stringify({ user, role }));
-}
+type DemoSession = { user: User; role: UserRole; workerProfileId: string | null; employerProfileId: string | null };
 
-function loadDemoUser(): { user: User; role: UserRole } | null {
+function saveDemoSession(s: DemoSession) {
+  localStorage.setItem(DEMO_KEY, JSON.stringify(s));
+}
+function loadDemoSession(): DemoSession | null {
   try {
     const raw = localStorage.getItem(DEMO_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch { /* ignore */ }
-  return null;
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
 }
-
-function clearDemoUser() {
-  localStorage.removeItem(DEMO_KEY);
-}
+function clearDemoSession() { localStorage.removeItem(DEMO_KEY); }
 
 function makeDemoUser(email: string, role: UserRole, name?: string): User {
   return {
@@ -45,43 +40,74 @@ function makeDemoUser(email: string, role: UserRole, name?: string): User {
     role,
     lang_preference: 'en',
     created_at: new Date().toISOString(),
-    // Extra fields the UI may reference
     name: name || email.split('@')[0],
   } as User;
 }
 
+// ── Fetch profile IDs after auth ──────────────────────────────
+async function fetchProfileIds(userId: string, role: UserRole) {
+  let workerProfileId: string | null = null;
+  let employerProfileId: string | null = null;
+
+  if (role === 'worker') {
+    const { data } = await supabase
+      .from('worker_profiles')
+      .select('id')
+      .eq('user_id', userId)
+      .single();
+    workerProfileId = data?.id ?? null;
+  } else if (role === 'employer') {
+    const { data } = await supabase
+      .from('employer_profiles')
+      .select('id')
+      .eq('user_id', userId)
+      .single();
+    employerProfileId = data?.id ?? null;
+  }
+  return { workerProfileId, employerProfileId };
+}
+
+// ── Zustand Store ─────────────────────────────────────────────
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   session: null,
   role: null,
+  workerProfileId: null,
+  employerProfileId: null,
   loading: false,
   initialized: false,
 
   initialize: async () => {
+    // ── DEMO MODE ──
     if (isDemo) {
-      // Demo mode — check localStorage for saved session
-      const saved = loadDemoUser();
+      const saved = loadDemoSession();
       if (saved) {
-        set({ user: saved.user, role: saved.role, session: 'demo', initialized: true });
+        set({ ...saved, session: 'demo', initialized: true });
       } else {
         set({ initialized: true });
       }
       return;
     }
 
-    // Real Supabase flow
+    // ── REAL SUPABASE ──
     const { data: { session } } = await supabase.auth.getSession();
+
     if (session?.user) {
       const { data: userData } = await supabase
         .from('users')
         .select('*')
         .eq('id', session.user.id)
         .single();
-      set({ session, user: userData, role: userData?.role, initialized: true });
+
+      if (userData) {
+        const profileIds = await fetchProfileIds(session.user.id, userData.role);
+        set({ session, user: userData, role: userData.role, ...profileIds, initialized: true });
+      }
     } else {
       set({ initialized: true });
     }
 
+    // Listen for auth state changes (login/logout)
     supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         const { data: userData } = await supabase
@@ -89,9 +115,12 @@ export const useAuthStore = create<AuthState>((set) => ({
           .select('*')
           .eq('id', session.user.id)
           .single();
-        set({ session, user: userData, role: userData?.role });
+        if (userData) {
+          const profileIds = await fetchProfileIds(session.user.id, userData.role);
+          set({ session, user: userData, role: userData.role, ...profileIds });
+        }
       } else {
-        set({ session: null, user: null, role: null });
+        set({ session: null, user: null, role: null, workerProfileId: null, employerProfileId: null });
       }
     });
   },
@@ -100,12 +129,16 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ loading: true });
 
     if (isDemo) {
-      // Demo: accept any credentials
-      const saved = loadDemoUser();
+      const saved = loadDemoSession();
       const user = saved?.user || makeDemoUser(email, 'worker');
       const role = saved?.role || 'worker';
-      saveDemoUser(user, role);
-      set({ user, role, session: 'demo', loading: false });
+      const session: DemoSession = {
+        user, role,
+        workerProfileId: role === 'worker' ? 'demo-wp-1' : null,
+        employerProfileId: role === 'employer' ? 'demo-ep-1' : null,
+      };
+      saveDemoSession(session);
+      set({ ...session, session: 'demo', loading: false });
       return;
     }
 
@@ -118,51 +151,74 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ loading: true });
 
     if (isDemo) {
-      // Demo: create a mock user and save
       const user = makeDemoUser(email, role, name);
-      saveDemoUser(user, role);
-      set({ user, role, session: 'demo', loading: false });
+      const session: DemoSession = {
+        user, role,
+        workerProfileId: role === 'worker' ? 'demo-wp-1' : null,
+        employerProfileId: role === 'employer' ? 'demo-ep-1' : null,
+      };
+      saveDemoSession(session);
+      set({ ...session, session: 'demo', loading: false });
       return;
     }
 
+    // 1. Create auth user
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) { set({ loading: false }); throw error; }
+
     if (data.user) {
-      await supabase.from('users').insert({
+      // 2. Insert into public.users
+      const { error: userError } = await supabase.from('users').insert({
         id: data.user.id,
         email,
         role,
         lang_preference: 'en',
       });
-      if (role === 'employer' && name) {
-        await supabase.from('employer_profiles').insert({
+      if (userError) { set({ loading: false }); throw userError; }
+
+      // 3. Create role profile — trigger handles this, but we do it explicitly too
+      if (role === 'worker') {
+        await supabase.from('worker_profiles').upsert({
           user_id: data.user.id,
-          name,
-          location: '',
-          is_verified: false,
+          first_name: name?.split(' ')[0] || '',
+          last_name: name?.split(' ').slice(1).join(' ') || '',
+        });
+      } else if (role === 'employer') {
+        await supabase.from('employer_profiles').upsert({
+          user_id: data.user.id,
+          name: name || '',
         });
       }
     }
+
     set({ loading: false });
   },
 
   signInWithGoogle: async () => {
     if (isDemo) {
       const user = makeDemoUser('demo@google.com', 'worker', 'Google User');
-      saveDemoUser(user, 'worker');
-      set({ user, role: 'worker', session: 'demo', loading: false });
+      const session: DemoSession = {
+        user, role: 'worker',
+        workerProfileId: 'demo-wp-1',
+        employerProfileId: null,
+      };
+      saveDemoSession(session);
+      set({ ...session, session: 'demo', loading: false });
       window.location.href = '/dashboard/worker';
       return;
     }
-    await supabase.auth.signInWithOAuth({ provider: 'google' });
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + '/dashboard/worker' },
+    });
   },
 
   signOut: async () => {
     if (isDemo) {
-      clearDemoUser();
+      clearDemoSession();
     } else {
       await supabase.auth.signOut();
     }
-    set({ user: null, session: null, role: null });
+    set({ user: null, session: null, role: null, workerProfileId: null, employerProfileId: null });
   },
 }));

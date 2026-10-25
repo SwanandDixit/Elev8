@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, MapPin, SlidersHorizontal, X } from 'lucide-react';
+import { Search, MapPin, SlidersHorizontal, X, Loader2 } from 'lucide-react';
 import WorkerCard from '../components/workers/WorkerCard';
-import { MOCK_WORKERS } from '../lib/mockData';
+import { fetchWorkers } from '../lib/api';
+import type { WorkerProfile } from '../types';
 
 const CATEGORIES = ['electrician','plumber','carpenter','cook','cleaning','driver','security','painter','welder','mason','acTech','gardener'];
 
@@ -15,17 +16,25 @@ const BrowseWorkers: React.FC = () => {
   const [availability, setAvailability] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
 
-  const filtered = useMemo(() => {
-    let workers = [...MOCK_WORKERS];
-    if (query) workers = workers.filter(w =>
-      `${w.first_name} ${w.last_name}`.toLowerCase().includes(query.toLowerCase()) ||
-      w.title.toLowerCase().includes(query.toLowerCase()) ||
-      w.skills?.some(s => s.toLowerCase().includes(query.toLowerCase()))
-    );
-    if (location) workers = workers.filter(w => w.location.toLowerCase().includes(location.toLowerCase()));
-    if (availability) workers = workers.filter(w => w.availability_status === availability);
-    return workers;
-  }, [query, location, category, verifiedOnly, availability]);
+  const [workers, setWorkers] = useState<WorkerProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [total, setTotal] = useState(0);
+
+  const loadWorkers = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    const { data, count, error: err } = await fetchWorkers({
+      query, location, category,
+      availability: availability as 'available' | 'soon' | 'unavailable' | undefined,
+      verifiedOnly,
+    });
+    if (err) setError('Failed to load workers. Please try again.');
+    else { setWorkers(data || []); setTotal(count || 0); }
+    setLoading(false);
+  }, [query, location, category, availability, verifiedOnly]);
+
+  useEffect(() => { loadWorkers(); }, [loadWorkers]);
 
   const Filters = () => (
     <div className="flex flex-col gap-5">
@@ -106,20 +115,31 @@ const BrowseWorkers: React.FC = () => {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-gray-500">{t('misc.showing')} <strong>{filtered.length}</strong> {t('misc.results')}</p>
+              <p className="text-sm text-gray-500">{t('misc.showing')} <strong>{total}</strong> {t('misc.results')}</p>
               <button className="lg:hidden btn btn-ghost btn-sm" onClick={() => setFilterOpen(true)}>
                 <SlidersHorizontal size={16} /> {t('btn.filter')}
               </button>
             </div>
 
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="flex justify-center py-20">
+                <Loader2 size={36} className="animate-spin text-indigo-500" />
+              </div>
+            ) : error ? (
+              <div className="card text-center py-16">
+                <div className="text-4xl mb-3">⚠️</div>
+                <h3 className="font-bold text-gray-900 mb-1">Something went wrong</h3>
+                <p className="text-gray-500 text-sm mb-4">{error}</p>
+                <button className="btn btn-primary" onClick={loadWorkers}>Try Again</button>
+              </div>
+            ) : workers.length === 0 ? (
               <div className="card text-center py-16">
                 <div className="text-4xl mb-3">👷</div>
                 <h3 className="font-bold text-gray-900 mb-1">{t('browseWorkers.noResults')}</h3>
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 stagger-children">
-                {filtered.map(w => <WorkerCard key={w.id} worker={w} />)}
+                {workers.map(w => <WorkerCard key={w.id} worker={w} />)}
               </div>
             )}
           </div>
@@ -136,7 +156,7 @@ const BrowseWorkers: React.FC = () => {
             </div>
             <Filters />
             <button className="btn btn-primary w-full mt-4" onClick={() => setFilterOpen(false)}>
-              {t('btn.search')} ({filtered.length})
+              {t('btn.search')} ({total})
             </button>
           </div>
         </>

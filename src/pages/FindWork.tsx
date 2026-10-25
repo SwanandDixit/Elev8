@@ -1,35 +1,92 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, MapPin, SlidersHorizontal, X } from 'lucide-react';
+import { Search, MapPin, SlidersHorizontal, X, Loader2, LocateFixed, Navigation } from 'lucide-react';
 import JobCard from '../components/jobs/JobCard';
-import { MOCK_JOBS } from '../lib/mockData';
+import { fetchJobs } from '../lib/api';
+import { getCurrentPosition } from '../lib/geo';
+import type { JobListing } from '../types';
 
 const CATEGORIES = ['electrician','plumber','carpenter','cook','cleaning','driver','security','painter','welder','mason','acTech','gardener'];
 const JOB_TYPES = ['fullTime','partTime','contract','emergency','weekend','evening'];
+const RADIUS_OPTIONS = [
+  { label: 'Any Distance', val: undefined },
+  { label: 'Within 5 km', val: 5 },
+  { label: 'Within 10 km', val: 10 },
+  { label: 'Within 25 km', val: 25 },
+  { label: 'Within 50 km', val: 50 },
+];
 
 const FindWork: React.FC = () => {
   const { t } = useTranslation();
   const [params] = useSearchParams();
   const [query, setQuery] = useState('');
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState(params.get('location') || '');
   const [category, setCategory] = useState(params.get('category') || '');
   const [jobTypes, setJobTypes] = useState<string[]>([]);
   const [payTypes, setPayTypes] = useState<string[]>([]);
+  const [radius, setRadius] = useState<number | undefined>(undefined);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
   const [filterOpen, setFilterOpen] = useState(false);
 
-  const filtered = useMemo(() => {
-    let jobs = [...MOCK_JOBS];
-    if (query) jobs = jobs.filter(j => j.title.toLowerCase().includes(query.toLowerCase()) || j.description.toLowerCase().includes(query.toLowerCase()));
-    if (location) jobs = jobs.filter(j => j.location.toLowerCase().includes(location.toLowerCase()));
-    if (category) jobs = jobs.filter(j => j.category === category);
-    if (verifiedOnly) jobs = jobs.filter(j => j.employer?.is_verified);
-    if (sortBy === 'newest') jobs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    if (sortBy === 'highest_pay') jobs.sort((a, b) => b.pay_rate - a.pay_rate);
-    return jobs;
-  }, [query, location, category, jobTypes, payTypes, verifiedOnly, sortBy]);
+  // GPS Coordinates state
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [isGpsActive, setIsGpsActive] = useState(false);
+  const [locating, setLocating] = useState(false);
+
+  const [jobs, setJobs] = useState<JobListing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [total, setTotal] = useState(0);
+
+  const handleDetectLocation = async () => {
+    setLocating(true);
+    try {
+      const coords = await getCurrentPosition();
+      setUserCoords(coords);
+      setIsGpsActive(true);
+      setLocation('Current Location (GPS)');
+      setSortBy('closest');
+    } catch {
+      // If permission denied or on desktop without GPS, fallback to default Mumbai coordinates
+      setUserCoords({ lat: 19.0760, lng: 72.8777 });
+      setIsGpsActive(true);
+      setLocation('Mumbai (Auto-detected)');
+      setSortBy('closest');
+    } finally {
+      setLocating(false);
+    }
+  };
+
+  const clearLocation = () => {
+    setLocation('');
+    setUserCoords(null);
+    setIsGpsActive(false);
+    setRadius(undefined);
+    if (sortBy === 'closest') setSortBy('newest');
+  };
+
+  const loadJobs = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    const { data, count, error: err } = await fetchJobs({
+      query,
+      location: isGpsActive ? '' : location,
+      userLat: userCoords?.lat,
+      userLng: userCoords?.lng,
+      radius,
+      category,
+      sortBy: sortBy as 'newest' | 'highest_pay' | 'closest',
+      verifiedOnly,
+      payType: payTypes as never[],
+    });
+    if (err) setError('Failed to load jobs. Please try again.');
+    else { setJobs(data || []); setTotal(count || 0); }
+    setLoading(false);
+  }, [query, location, isGpsActive, userCoords, radius, category, sortBy, verifiedOnly, payTypes]);
+
+  useEffect(() => { loadJobs(); }, [loadJobs]);
 
   const toggleArr = (arr: string[], val: string, setter: (v: string[]) => void) => {
     setter(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
@@ -54,6 +111,32 @@ const FindWork: React.FC = () => {
       </div>
       <hr className="border-gray-100" />
       <div>
+        <h4 className="label mb-3 flex items-center justify-between">
+          <span>Distance Radius</span>
+          {radius && <span className="text-xs text-[var(--primary)] font-semibold">{radius} km</span>}
+        </h4>
+        <div className="flex flex-col gap-2">
+          {RADIUS_OPTIONS.map(opt => (
+            <label key={opt.label} className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="radio"
+                name="radius"
+                checked={radius === opt.val}
+                onChange={() => setRadius(opt.val)}
+                className="accent-[var(--primary)]"
+              />
+              {opt.label}
+            </label>
+          ))}
+        </div>
+        {!userCoords && !location && (
+          <p className="text-xs text-gray-400 mt-2">
+            Tip: Click &quot;Near Me&quot; or enter a city to activate distance sorting.
+          </p>
+        )}
+      </div>
+      <hr className="border-gray-100" />
+      <div>
         <h4 className="label mb-3">{t('findWork.jobType')}</h4>
         <div className="flex flex-col gap-2">
           {JOB_TYPES.map(jt => (
@@ -72,7 +155,7 @@ const FindWork: React.FC = () => {
         </div>
         <span className="text-sm font-medium">{t('findWork.verifiedOnly')}</span>
       </label>
-      <button onClick={() => { setCategory(''); setJobTypes([]); setPayTypes([]); setVerifiedOnly(false); }}
+      <button onClick={() => { setCategory(''); setJobTypes([]); setPayTypes([]); setVerifiedOnly(false); clearLocation(); }}
         className="btn btn-ghost btn-sm text-gray-500">
         <X size={14} /> {t('btn.clearFilters')}
       </button>
@@ -90,9 +173,27 @@ const FindWork: React.FC = () => {
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input className="input pl-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400" placeholder={t('findWork.searchPlaceholder')} value={query} onChange={e => setQuery(e.target.value)} />
             </div>
-            <div className="relative md:w-56">
+            <div className="relative md:w-64">
               <MapPin size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input className="input pl-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400" placeholder={t('findWork.locationPlaceholder')} value={location} onChange={e => setLocation(e.target.value)} />
+              <input
+                className="input pl-10 pr-24 bg-white/10 border-white/20 text-white placeholder:text-slate-400"
+                placeholder={t('findWork.locationPlaceholder')}
+                value={location}
+                onChange={e => {
+                  setLocation(e.target.value);
+                  if (isGpsActive) setIsGpsActive(false);
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleDetectLocation}
+                title="Detect my current location"
+                disabled={locating}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs flex items-center gap-1 py-1 px-2 rounded-lg bg-indigo-500/30 hover:bg-indigo-500/50 text-indigo-100 font-medium transition-colors border border-indigo-400/30"
+              >
+                {locating ? <Loader2 size={11} className="animate-spin" /> : <LocateFixed size={11} />}
+                <span>Near Me</span>
+              </button>
             </div>
             <div className="relative md:w-52">
               <select className="select bg-white/10 border-white/20 text-white" value={category} onChange={e => setCategory(e.target.value)}>
@@ -100,7 +201,7 @@ const FindWork: React.FC = () => {
                 {CATEGORIES.map(c => <option key={c} value={c} style={{ color: '#000' }}>{t(`categories.${c}`)}</option>)}
               </select>
             </div>
-            <button className="btn btn-primary px-6">
+            <button className="btn btn-primary px-6" onClick={loadJobs}>
               <Search size={16} /> {t('btn.search')}
             </button>
           </div>
@@ -119,9 +220,28 @@ const FindWork: React.FC = () => {
           </aside>
 
           <div className="flex-1 min-w-0">
+            {/* Location Awareness Banner */}
+            {(isGpsActive || userCoords || location) && (
+              <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-2.5 mb-4 flex items-center justify-between gap-3 text-sm">
+                <div className="flex items-center gap-2 text-indigo-900">
+                  <Navigation size={15} className="text-indigo-600 fill-indigo-600 flex-shrink-0" />
+                  <span>
+                    Showing works near <strong>{location || 'your location'}</strong>
+                    {radius ? ` (within ${radius} km)` : ''}
+                  </span>
+                </div>
+                <button
+                  onClick={clearLocation}
+                  className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold underline flex-shrink-0"
+                >
+                  Clear location
+                </button>
+              </div>
+            )}
+
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-gray-500">
-                {t('misc.showing')} <strong>{filtered.length}</strong> {t('misc.results')}
+                {t('misc.showing')} <strong>{total}</strong> {t('misc.results')}
               </p>
               <div className="flex items-center gap-2">
                 <button className="lg:hidden btn btn-ghost btn-sm" onClick={() => setFilterOpen(true)}>
@@ -129,13 +249,24 @@ const FindWork: React.FC = () => {
                 </button>
                 <select className="select w-44 text-sm" style={{ height: '38px' }} value={sortBy} onChange={e => setSortBy(e.target.value)}>
                   <option value="newest">{t('findWork.newest')}</option>
+                  <option value="closest">📍 Closest to Me</option>
                   <option value="highest_pay">{t('findWork.highestPay')}</option>
-                  <option value="closest">{t('findWork.closest')}</option>
                 </select>
               </div>
             </div>
 
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="flex justify-center py-20">
+                <Loader2 size={36} className="animate-spin text-indigo-500" />
+              </div>
+            ) : error ? (
+              <div className="card text-center py-16">
+                <div className="text-4xl mb-3">⚠️</div>
+                <h3 className="font-bold text-gray-900 mb-1">Something went wrong</h3>
+                <p className="text-gray-500 text-sm mb-4">{error}</p>
+                <button className="btn btn-primary" onClick={loadJobs}>Try Again</button>
+              </div>
+            ) : jobs.length === 0 ? (
               <div className="card text-center py-16">
                 <div className="text-4xl mb-3">🔍</div>
                 <h3 className="font-bold text-gray-900 mb-1">{t('findWork.noResults')}</h3>
@@ -143,7 +274,7 @@ const FindWork: React.FC = () => {
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 gap-4 stagger-children">
-                {filtered.map(job => <JobCard key={job.id} job={job} />)}
+                {jobs.map(job => <JobCard key={job.id} job={job} />)}
               </div>
             )}
           </div>
@@ -160,7 +291,7 @@ const FindWork: React.FC = () => {
             </div>
             <FiltersPanel />
             <button className="btn btn-primary w-full mt-4" onClick={() => setFilterOpen(false)}>
-              {t('btn.search')} ({filtered.length})
+              {t('btn.search')} ({total})
             </button>
           </div>
         </>

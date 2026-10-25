@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Clock, Bookmark, BookmarkCheck, Share2, Zap, Shield } from 'lucide-react';
+import { MapPin, Clock, Bookmark, BookmarkCheck, Share2, Zap, Shield, Navigation } from 'lucide-react';
 import type { JobListing } from '../../types';
 
 interface JobCardProps {
@@ -48,6 +48,11 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply }) => {
             {job.urgency === 'urgent' && (
               <span className="badge" style={{ background: '#FEF2F2', color: '#EF4444', border: '1px solid #FECACA' }}>Urgent</span>
             )}
+            {job.distance !== undefined && job.distance <= 8 && (
+              <span className="badge" style={{ background: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0' }}>
+                📍 Nearby
+              </span>
+            )}
           </div>
           <h3 className="font-semibold text-gray-900 text-base leading-tight">{job.title}</h3>
           <p className="text-sm text-gray-500 mt-0.5">
@@ -67,12 +72,18 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply }) => {
       </div>
 
       {/* Meta */}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mb-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-gray-500 mb-3">
         <span className="flex items-center gap-1">
-          <MapPin size={13} /> {job.location}
+          <MapPin size={13} className="text-gray-400" /> {job.location}
         </span>
-        <span className="flex items-center gap-1">
-          <Clock size={13} /> {timeAgo(job.created_at)}
+        {job.distance !== undefined && (
+          <span className="flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full text-xs border border-emerald-200">
+            <Navigation size={10} className="text-emerald-600 fill-emerald-600" />
+            {job.distance < 1 ? '< 1 km away' : `${job.distance} km away`}
+          </span>
+        )}
+        <span className="flex items-center gap-1 text-xs text-gray-400">
+          <Clock size={12} /> {timeAgo(job.created_at)}
         </span>
       </div>
 

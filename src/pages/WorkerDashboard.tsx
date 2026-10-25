@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { 
   LayoutDashboard, User, Briefcase, Bookmark, MessageSquare, 
   Award, Settings, LogOut, Menu, X, ChevronRight, Star,
-  MapPin, CheckCircle, Eye, Calendar, Clock
+  CheckCircle, Eye, Calendar, Clock, Loader2, Save, Navigation, MapPin
 } from 'lucide-react';
-import { MOCK_JOBS, MOCK_WORKERS } from '../lib/mockData';
+import { fetchWorkerByUserId, fetchWorkerApplications, fetchCertifications, updateWorkerProfile, fetchJobs } from '../lib/api';
+import type { WorkerProfile, JobApplication, Certification, JobListing } from '../types';
 import { Link } from 'react-router-dom';
 
 const WorkerDashboard: React.FC = () => {
@@ -14,7 +15,47 @@ const WorkerDashboard: React.FC = () => {
   const { user, signOut } = useAuthStore();
   const [activeTab, setActiveTab] = useState('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const worker = MOCK_WORKERS[0]; // Use first mock worker as current user
+
+  // Real data state
+  const [worker, setWorker] = useState<WorkerProfile | null>(null);
+  const [applications, setApplications] = useState<JobApplication[]>([]);
+  const [certifications, setCertifications] = useState<Certification[]>([]);
+  const [nearbyJobs, setNearbyJobs] = useState<JobListing[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  // Profile form state
+  const [form, setForm] = useState({ first_name: '', last_name: '', title: '', bio: '', city: '', state: '', hourly_rate: 0 });
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      setDataLoading(true);
+      const { data: w } = await fetchWorkerByUserId(user.id);
+      if (w) {
+        setWorker(w);
+        setForm({ first_name: w.first_name, last_name: w.last_name, title: w.title, bio: w.bio, city: w.city, state: w.state, hourly_rate: w.hourly_rate });
+        const { data: apps } = await fetchWorkerApplications(w.id);
+        const { data: certs } = await fetchCertifications(w.id);
+        const { data: nearby } = await fetchJobs({
+          location: w.city || w.location || 'Mumbai',
+          sortBy: 'closest',
+        });
+        setApplications(apps || []);
+        setCertifications(certs || []);
+        setNearbyJobs((nearby || []).slice(0, 3));
+      }
+      setDataLoading(false);
+    })();
+  }, [user]);
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setSaving(true);
+    await updateWorkerProfile(user.id, form);
+    setSaving(false);
+  };
+
 
   const TABS = [
     { id: 'overview', icon: LayoutDashboard, label: t('dashboard.overview') },
@@ -96,17 +137,26 @@ const WorkerDashboard: React.FC = () => {
 
       {/* Main Content */}
       <div className="flex-1 p-4 md:p-8 overflow-y-auto">
+
+        {dataLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 size={36} className="animate-spin text-indigo-500" />
+          </div>
+        ) : (
+          <>
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
           <div className="max-w-5xl animate-fade-in">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Welcome back! 👋</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">
+              Welcome back, {worker?.first_name || user?.email?.split('@')[0]}! 👋
+            </h1>
             
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 stagger-children">
               {[
-                { label: t('dashboard.profileViews'), value: '45', icon: Eye, color: '#4F46E5' },
-                { label: t('dashboard.applicationsSent'), value: '12', icon: Briefcase, color: '#10B981' },
-                { label: t('dashboard.interviews'), value: '3', icon: Calendar, color: '#F59E0B' },
-                { label: t('dashboard.jobsCompleted'), value: '28', icon: CheckCircle, color: '#8B5CF6' },
+                { label: t('dashboard.profileViews'), value: worker?.profile_views ?? 0, icon: Eye, color: '#4F46E5' },
+                { label: t('dashboard.applicationsSent'), value: applications.length, icon: Briefcase, color: '#10B981' },
+                { label: t('dashboard.interviews'), value: applications.filter(a => a.status === 'shortlisted').length, icon: Calendar, color: '#F59E0B' },
+                { label: t('dashboard.jobsCompleted'), value: applications.filter(a => a.status === 'hired').length, icon: CheckCircle, color: '#8B5CF6' },
               ].map((stat, i) => (
                 <div key={i} className="card p-5">
                   <div className="flex items-center justify-between mb-3">
@@ -123,10 +173,15 @@ const WorkerDashboard: React.FC = () => {
             <div className="card mb-8">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-gray-900">{t('dashboard.profileCompletion')}</h3>
-                <span className="text-sm font-bold text-[var(--primary)]">80%</span>
+                <span className="text-sm font-bold text-[var(--primary)]">
+                  {worker ? Math.min(100, [worker.first_name, worker.title, worker.bio, worker.city, (worker.skills?.length || 0) > 0].filter(Boolean).length * 20) : 0}%
+                </span>
               </div>
               <div className="w-full h-2.5 bg-gray-100 rounded-full mb-3 overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: '80%', background: 'var(--gradient-primary)' }} />
+                <div className="h-full rounded-full" style={{
+                  width: `${worker ? Math.min(100, [worker.first_name, worker.title, worker.bio, worker.city, (worker.skills?.length || 0) > 0].filter(Boolean).length * 20) : 0}%`,
+                  background: 'var(--gradient-primary)'
+                }} />
               </div>
               <p className="text-sm text-gray-500">{t('dashboard.completeProfile')}</p>
               <button onClick={() => setActiveTab('profile')} className="text-sm text-[var(--primary)] font-semibold mt-2 flex items-center gap-1 hover:underline">
@@ -134,20 +189,82 @@ const WorkerDashboard: React.FC = () => {
               </button>
             </div>
 
-            <h2 className="font-bold text-gray-900 mb-4">Recent Job Matches</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
-              {MOCK_JOBS.slice(0, 3).map(job => (
-                <div key={job.id} className="card glow-card p-5">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="badge badge-new">{job.category}</span>
-                    <span className="text-sm font-bold gradient-text">₹{job.pay_rate}</span>
-                  </div>
-                  <h4 className="font-semibold text-gray-900 mb-1 line-clamp-1">{job.title}</h4>
-                  <p className="text-xs text-gray-500 mb-3 flex items-center gap-1"><MapPin size={11}/>{job.location}</p>
-                  <Link to="/find-work" className="btn btn-secondary btn-sm w-full">View Details</Link>
+            {/* Location-based Jobs Near You */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+                    <Navigation size={18} className="text-[var(--primary)] fill-[var(--primary)]" />
+                    Jobs Near You
+                  </h2>
+                  <p className="text-xs text-gray-500">
+                    Showing jobs within your travel radius ({worker?.travel_distance || '25 km'}) near {worker?.city || 'your area'}
+                  </p>
                 </div>
-              ))}
+                <Link
+                  to={`/find-work?location=${encodeURIComponent(worker?.city || 'Mumbai')}&sortBy=closest`}
+                  className="text-xs font-semibold text-[var(--primary)] hover:underline flex items-center gap-1"
+                >
+                  View All <ChevronRight size={13} />
+                </Link>
+              </div>
+
+              {nearbyJobs.length === 0 ? (
+                <div className="card text-center py-8">
+                  <p className="text-gray-400 text-sm">No nearby listings found right now.</p>
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
+                  {nearbyJobs.map(job => (
+                    <div key={job.id} className="card glow-card p-4 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="badge badge-new text-xs">{job.category}</span>
+                          {job.distance !== undefined && (
+                            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                              <Navigation size={9} className="text-emerald-600 fill-emerald-600" />
+                              {job.distance < 1 ? '< 1 km' : `${job.distance} km away`}
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-semibold text-gray-900 text-sm line-clamp-1 mb-1">{job.title}</h4>
+                        <p className="text-xs text-gray-500 mb-3 flex items-center gap-1">
+                          <MapPin size={11} className="text-gray-400" /> {job.location}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                        <span className="text-sm font-bold gradient-text">₹{job.pay_rate}</span>
+                        <Link to="/find-work" className="btn btn-secondary btn-sm text-xs py-1 px-3">Apply</Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+
+            <h2 className="font-bold text-gray-900 mb-4">Recent Applications</h2>
+            {applications.length === 0 ? (
+              <div className="card text-center py-10">
+                <p className="text-gray-400">No applications yet. <Link to="/find-work" className="text-[var(--primary)] font-semibold">Browse Jobs →</Link></p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3 stagger-children">
+                {applications.slice(0, 3).map(app => (
+                  <div key={app.id} className="card flex items-center gap-4">
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--primary-light)' }}>
+                      <Briefcase size={20} className="text-[var(--primary)]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900">{(app.job as any)?.title || 'Job'}</h3>
+                      <p className="text-sm text-gray-500">{(app.job as any)?.location || ''}</p>
+                    </div>
+                    <span className={`badge ${app.status === 'hired' ? 'badge-verified' : app.status === 'shortlisted' ? 'bg-purple-50 text-purple-600' : app.status === 'rejected' ? 'badge-rejected' : 'bg-blue-50 text-blue-600'}`}>
+                      {app.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -158,55 +275,62 @@ const WorkerDashboard: React.FC = () => {
             <div className="card mb-6">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold" style={{ background: 'var(--gradient-primary)' }}>
-                  {worker.first_name[0]}{worker.last_name[0]}
+                  {(form.first_name[0] || '?')}{(form.last_name[0] || '')}
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">{worker.first_name} {worker.last_name}</h2>
-                  <p className="text-gray-500">{worker.title}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Star size={14} className="text-amber-400 fill-amber-400" />
-                    <span className="text-sm font-semibold">{worker.rating}</span>
-                    <span className="text-sm text-gray-400">({worker.total_reviews} reviews)</span>
-                  </div>
+                  <h2 className="text-xl font-bold text-gray-900">{form.first_name} {form.last_name}</h2>
+                  <p className="text-gray-500">{form.title}</p>
+                  {worker && (
+                    <div className="flex items-center gap-2 mt-1">
+                      <Star size={14} className="text-amber-400 fill-amber-400" />
+                      <span className="text-sm font-semibold">{worker.rating}</span>
+                      <span className="text-sm text-gray-400">({worker.total_reviews} reviews)</span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="form-group">
                   <label className="label">First Name</label>
-                  <input className="input" defaultValue={worker.first_name} />
+                  <input className="input" value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))} />
                 </div>
                 <div className="form-group">
                   <label className="label">Last Name</label>
-                  <input className="input" defaultValue={worker.last_name} />
+                  <input className="input" value={form.last_name} onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))} />
                 </div>
                 <div className="form-group">
                   <label className="label">Professional Title</label>
-                  <input className="input" defaultValue={worker.title} />
+                  <input className="input" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
                 </div>
                 <div className="form-group">
                   <label className="label">Hourly Rate (₹)</label>
-                  <input className="input" type="number" defaultValue={worker.hourly_rate} />
+                  <input className="input" type="number" value={form.hourly_rate} onChange={e => setForm(f => ({ ...f, hourly_rate: +e.target.value }))} />
                 </div>
                 <div className="form-group sm:col-span-2">
                   <label className="label">Bio</label>
-                  <textarea className="textarea" defaultValue={worker.bio} rows={3} />
+                  <textarea className="textarea" value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} rows={3} />
                 </div>
                 <div className="form-group">
                   <label className="label">City</label>
-                  <input className="input" defaultValue={worker.city} />
+                  <input className="input" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} />
                 </div>
                 <div className="form-group">
                   <label className="label">State</label>
-                  <input className="input" defaultValue={worker.state} />
+                  <input className="input" value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} />
                 </div>
               </div>
-              <div className="mt-5">
-                <label className="label mb-2">Skills</label>
-                <div className="flex flex-wrap gap-2">
-                  {worker.skills?.map(s => <span key={s} className="pill">{s}</span>)}
+              {worker?.skills && worker.skills.length > 0 && (
+                <div className="mt-5">
+                  <label className="label mb-2">Skills</label>
+                  <div className="flex flex-wrap gap-2">
+                    {worker.skills.map(s => <span key={s} className="pill">{s}</span>)}
+                  </div>
                 </div>
-              </div>
-              <button className="btn btn-primary mt-6">Save Changes</button>
+              )}
+              <button className="btn btn-primary mt-6 flex items-center gap-2" onClick={handleSaveProfile} disabled={saving}>
+                {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
             </div>
           </div>
         )}
@@ -215,78 +339,34 @@ const WorkerDashboard: React.FC = () => {
         {activeTab === 'applications' && (
           <div className="max-w-4xl animate-fade-in">
             <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('dashboard.applications')}</h1>
-            <div className="flex flex-col gap-4 stagger-children">
-              {MOCK_JOBS.slice(0, 4).map((job, i) => {
-                const statuses = ['Applied', 'Viewed', 'Shortlisted', 'Hired'];
-                const colors = ['bg-blue-50 text-blue-600', 'bg-amber-50 text-amber-600', 'bg-purple-50 text-purple-600', 'bg-green-50 text-green-600'];
-                return (
-                  <div key={job.id} className="card flex items-center gap-4">
+            {applications.length === 0 ? (
+              <div className="card text-center py-16">
+                <div className="text-4xl mb-3">📋</div>
+                <h3 className="font-bold text-gray-900 mb-1">No applications yet</h3>
+                <p className="text-gray-500 text-sm mb-4">Start applying for jobs that match your skills.</p>
+                <Link to="/find-work" className="btn btn-primary">Browse Jobs</Link>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4 stagger-children">
+                {applications.map(app => (
+                  <div key={app.id} className="card flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center text-lg flex-shrink-0" style={{ background: 'var(--primary-light)' }}>
                       <Briefcase size={22} className="text-[var(--primary)]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900">{job.title}</h3>
-                      <p className="text-sm text-gray-500">{job.employer?.name} · {job.location}</p>
+                      <h3 className="font-semibold text-gray-900">{(app.job as any)?.title || 'Job'}</h3>
+                      <p className="text-sm text-gray-500">{(app.job as any)?.employer?.name} · {(app.job as any)?.location}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className={`badge ${colors[i % 4]}`}>{statuses[i % 4]}</span>
-                      <span className="text-sm font-bold gradient-text">₹{job.pay_rate}</span>
+                      <span className={`badge ${app.status === 'hired' ? 'badge-verified' : app.status === 'shortlisted' ? 'bg-purple-50 text-purple-600' : app.status === 'rejected' ? 'badge-rejected' : 'bg-blue-50 text-blue-600'}`}>
+                        {app.status}
+                      </span>
+                      <span className="text-sm font-bold gradient-text">₹{(app.job as any)?.pay_rate || 0}</span>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* SAVED JOBS TAB */}
-        {activeTab === 'saved' && (
-          <div className="max-w-4xl animate-fade-in">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('dashboard.savedJobs')}</h1>
-            <div className="grid sm:grid-cols-2 gap-4 stagger-children">
-              {MOCK_JOBS.slice(0, 4).map(job => (
-                <div key={job.id} className="card glow-card">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="badge badge-new">{job.category}</span>
-                    <Bookmark size={18} className="text-[var(--primary)] fill-[var(--primary)]" />
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">{job.title}</h3>
-                  <p className="text-sm text-gray-500 mb-2 flex items-center gap-1"><MapPin size={12}/>{job.location}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold gradient-text">₹{job.pay_rate}</span>
-                    <Link to="/find-work" className="btn btn-secondary btn-sm">View</Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* MESSAGES TAB */}
-        {activeTab === 'messages' && (
-          <div className="max-w-3xl animate-fade-in">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('dashboard.messages')}</h1>
-            <div className="flex flex-col gap-3 stagger-children">
-              {[
-                { name: 'Tech Solutions Ltd', msg: 'Hi Ramesh, we are interested in your services for our office rewiring project.', time: '2 hours ago', unread: true },
-                { name: 'Sharma Family', msg: 'Can you come for an inspection this Saturday?', time: '1 day ago', unread: false },
-                { name: 'Grand Stay Hotels', msg: 'Thanks for the great work! We will send a review.', time: '3 days ago', unread: false },
-              ].map((conv, i) => (
-                <div key={i} className={`card flex items-center gap-4 cursor-pointer ${conv.unread ? 'border-[var(--primary)]/30 bg-indigo-50/30' : ''}`}>
-                  <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0" style={{ background: conv.unread ? 'var(--gradient-primary)' : '#94A3B8' }}>
-                    {conv.name[0]}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h3 className={`font-semibold text-sm ${conv.unread ? 'text-gray-900' : 'text-gray-600'}`}>{conv.name}</h3>
-                      <span className="text-xs text-gray-400">{conv.time}</span>
-                    </div>
-                    <p className="text-sm text-gray-500 truncate">{conv.msg}</p>
-                  </div>
-                  {conv.unread && <div className="w-2.5 h-2.5 rounded-full bg-[var(--primary)] flex-shrink-0" />}
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -295,28 +375,50 @@ const WorkerDashboard: React.FC = () => {
           <div className="max-w-3xl animate-fade-in">
             <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('dashboard.certifications')}</h1>
             <div className="flex flex-col gap-4 stagger-children">
-              {[
-                { name: 'Electrical Safety Level 2', partner: 'ITI', status: 'Approved', statusColor: 'badge-verified' },
-                { name: 'Advanced Wiring Certification', partner: 'Elev8', status: 'Pending', statusColor: 'badge-pending' },
-                { name: 'Solar Panel Installation', partner: 'Udemy', status: 'Rejected', statusColor: 'badge-rejected' },
-              ].map((cert, i) => (
-                <div key={i} className="card flex items-center gap-4">
+              {certifications.length === 0 ? (
+                <div className="card text-center py-10">
+                  <p className="text-gray-400">No certifications yet.</p>
+                </div>
+              ) : certifications.map((cert) => (
+                <div key={cert.id} className="card flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--accent-light)' }}>
                     <Award size={22} className="text-amber-500" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{cert.name}</h3>
-                    <p className="text-sm text-gray-500">{cert.partner}</p>
+                    <h3 className="font-semibold text-gray-900">{cert.cert_name}</h3>
+                    <p className="text-sm text-gray-500">{cert.partner_name || cert.type}</p>
                   </div>
-                  <span className={`badge ${cert.statusColor}`}>
-                    {cert.status === 'Approved' && <CheckCircle size={10}/>}
-                    {cert.status === 'Pending' && <Clock size={10}/>}
+                  <span className={`badge ${cert.status === 'approved' ? 'badge-verified' : cert.status === 'pending' ? 'badge-pending' : 'badge-rejected'}`}>
+                    {cert.status === 'approved' && <CheckCircle size={10}/>}
+                    {cert.status === 'pending' && <Clock size={10}/>}
                     {cert.status}
                   </span>
                 </div>
               ))}
             </div>
             <Link to="/certifications" className="btn btn-primary mt-6">Get New Certification</Link>
+          </div>
+        )}
+
+        {/* MESSAGES TAB */}
+        {activeTab === 'messages' && (
+          <div className="max-w-3xl animate-fade-in">
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('dashboard.messages')}</h1>
+            <div className="card text-center py-10">
+              <MessageSquare size={32} className="text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-400 text-sm">Messaging will be available once you connect your Supabase account.</p>
+            </div>
+          </div>
+        )}
+
+        {/* SAVED JOBS TAB */}
+        {activeTab === 'saved' && (
+          <div className="max-w-4xl animate-fade-in">
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('dashboard.savedJobs')}</h1>
+            <div className="card text-center py-10">
+              <Bookmark size={32} className="text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-400 text-sm">Saved jobs will appear here. <Link to="/find-work" className="text-[var(--primary)] font-semibold">Browse Jobs →</Link></p>
+            </div>
           </div>
         )}
 
@@ -329,7 +431,7 @@ const WorkerDashboard: React.FC = () => {
               <div className="flex flex-col gap-4">
                 <div className="form-group">
                   <label className="label">Email</label>
-                  <input className="input" defaultValue={user?.email || ''} />
+                  <input className="input" defaultValue={user?.email || ''} disabled />
                 </div>
                 <div className="form-group">
                   <label className="label">Phone</label>
@@ -361,6 +463,8 @@ const WorkerDashboard: React.FC = () => {
             </div>
             <button className="btn btn-primary">Save Settings</button>
           </div>
+        )}
+          </>
         )}
       </div>
     </div>
