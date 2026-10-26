@@ -80,22 +80,87 @@ const Home: React.FC = () => {
     <div className="pb-16 md:pb-0">
       {/* ── Hero (Dark Gradient) ── */}
       <section className="hero-dark py-20 md:py-24">
-        <div className="container text-center max-w-3xl mx-auto relative z-10">
-          <span className="inline-block bg-white/10 text-indigo-300 text-sm font-medium px-5 py-2 rounded-full mb-8 border border-white/10 backdrop-blur-sm">
-            🇮🇳 India's Skill Employment Platform
-          </span>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-white leading-[1.1] mb-6 tracking-tight">
-            {t('hero.title')}
-          </h1>
-          <p className="text-lg text-slate-300 leading-relaxed mb-10 max-w-xl mx-auto">
-            {t('hero.subtitle')}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/find-work" className="btn btn-lg" style={{ background: 'rgba(255,255,255,0.12)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.25)' }}>
-              {t('btn.findWork')}
+        <div className="container relative z-10">
+          <div className="text-center mb-12">
+            <span className="inline-block bg-white/10 text-indigo-300 text-sm font-medium px-5 py-2 rounded-full mb-8 border border-white/10 backdrop-blur-sm">
+              🇮🇳 India's Skill Employment Platform
+            </span>
+            <h1 className="text-4xl md:text-6xl font-extrabold text-white leading-[1.1] mb-6 tracking-tight">
+              {t('hero.title')}
+            </h1>
+            <p className="text-lg text-slate-300 leading-relaxed mb-10 max-w-xl mx-auto">
+              {t('hero.subtitle')}
+            </p>
+          </div>
+
+          {/* Dual CTA Cards */}
+          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {/* Worker CTA */}
+            <Link
+              to="/find-work"
+              style={{
+                display: 'block',
+                background: 'rgba(255,255,255,0.08)',
+                border: '1.5px solid rgba(255,255,255,0.2)',
+                borderRadius: '20px',
+                padding: '32px 28px',
+                textDecoration: 'none',
+                transition: 'all 0.25s',
+                backdropFilter: 'blur(12px)',
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.15)';
+                (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)';
+                (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+              }}
+            >
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>👷</div>
+              <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#fff', marginBottom: '8px' }}>
+                I'm Looking for Work
+              </h2>
+              <p style={{ fontSize: '14px', color: '#CBD5E1', marginBottom: '20px', lineHeight: '1.6' }}>
+                Browse thousands of jobs near you. Apply with one click and get hired fast.
+              </p>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'var(--gradient-primary)', color: '#fff', padding: '10px 20px', borderRadius: '10px', fontSize: '14px', fontWeight: 700 }}>
+                Find Jobs →
+              </div>
             </Link>
-            <Link to="/post-requirements" className="btn btn-cta btn-lg">
-              {t('btn.hireNow')} <ArrowRight size={18} />
+
+            {/* Employer CTA */}
+            <Link
+              to="/post-requirements"
+              style={{
+                display: 'block',
+                background: 'rgba(245,158,11,0.12)',
+                border: '1.5px solid rgba(245,158,11,0.3)',
+                borderRadius: '20px',
+                padding: '32px 28px',
+                textDecoration: 'none',
+                transition: 'all 0.25s',
+                backdropFilter: 'blur(12px)',
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(245,158,11,0.2)';
+                (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(245,158,11,0.12)';
+                (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+              }}
+            >
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏠</div>
+              <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#fff', marginBottom: '8px' }}>
+                I Need a Worker
+              </h2>
+              <p style={{ fontSize: '14px', color: '#CBD5E1', marginBottom: '20px', lineHeight: '1.6' }}>
+                Post your requirement and get matched with verified skilled workers near you.
+              </p>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'var(--gradient-accent)', color: '#fff', padding: '10px 20px', borderRadius: '10px', fontSize: '14px', fontWeight: 700 }}>
+                Post a Job →
+              </div>
             </Link>
           </div>
         </div>

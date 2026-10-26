@@ -94,9 +94,10 @@ const WorkerDashboard: React.FC = () => {
             onClick={() => { setActiveTab(tab.id); setMobileMenuOpen(false); }}
             className={`w-full flex items-center gap-3 px-6 py-3 text-sm font-medium transition-all ${
               activeTab === tab.id 
-                ? 'bg-indigo-50 text-[var(--primary)] border-r-3 border-[var(--primary)]' 
+                ? 'bg-indigo-50 text-[var(--primary)]' 
                 : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
             }`}
+            style={activeTab === tab.id ? { borderRight: '3px solid var(--primary)' } : {}}
           >
             <tab.icon size={18} />
             {tab.label}

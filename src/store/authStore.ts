@@ -129,9 +129,15 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ loading: true });
 
     if (isDemo) {
-      const saved = loadDemoSession();
-      const user = saved?.user || makeDemoUser(email, 'worker');
-      const role = saved?.role || 'worker';
+      // Determine role from email keywords
+      let role: UserRole = 'worker';
+      const lowerEmail = email.toLowerCase();
+      if (lowerEmail.includes('admin')) {
+        role = 'admin';
+      } else if (lowerEmail.includes('employer') || lowerEmail.includes('customer') || lowerEmail.includes('hire')) {
+        role = 'employer';
+      }
+      const user = makeDemoUser(email, role);
       const session: DemoSession = {
         user, role,
         workerProfileId: role === 'worker' ? 'demo-wp-1' : null,

@@ -12,12 +12,29 @@ const Navbar: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  const navLinks = [
-    { label: t('nav.findWork'), to: '/find-work' },
-    { label: t('nav.browseWorkers'), to: '/browse-workers' },
-    { label: t('nav.postJob'), to: '/post-requirements' },
-    { label: t('nav.about'), to: '/about' },
-  ];
+  // Role-based nav links
+  const navLinks = user
+    ? role === 'worker'
+      ? [
+          { label: 'Find Jobs', to: '/find-work' },
+          { label: 'My Dashboard', to: '/dashboard/worker' },
+          { label: t('nav.certifications'), to: '/certifications' },
+        ]
+      : role === 'employer'
+      ? [
+          { label: 'Browse Workers', to: '/browse-workers' },
+          { label: 'Post a Job', to: '/post-requirements' },
+          { label: 'My Dashboard', to: '/dashboard/employer' },
+        ]
+      : role === 'admin'
+      ? [{ label: 'Admin Panel', to: '/admin' }]
+      : []
+    : [
+        { label: t('nav.findWork'), to: '/find-work' },
+        { label: t('nav.browseWorkers'), to: '/browse-workers' },
+        { label: t('nav.postJob'), to: '/post-requirements' },
+        { label: t('nav.about'), to: '/about' },
+      ];
 
   const dashboardPath = role === 'employer' ? '/dashboard/employer' : role === 'admin' ? '/admin' : '/dashboard/worker';
 
@@ -57,6 +74,10 @@ const Navbar: React.FC = () => {
                 >
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold" style={{ background: 'var(--gradient-primary)' }}>
                     {user.email?.[0]?.toUpperCase()}
+                  </div>
+                  <div className="text-left hidden xl:block">
+                    <div className="text-xs font-semibold text-gray-800 leading-none">{user.email?.split('@')[0]}</div>
+                    <div className="text-xs text-gray-400 capitalize">{role}</div>
                   </div>
                   <ChevronDown size={16} className="text-gray-400" />
                 </button>

@@ -3,10 +3,13 @@ import {
   CheckCircle, Zap, ChevronRight, ChevronLeft, 
   Camera, Upload, MapPin, Shield, AlertTriangle
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PriceEstimator from '../components/negotiation/PriceEstimator';
 import { getPriceEstimate } from '../lib/pricing';
+import { createJob } from '../lib/api';
+import { useAuthStore } from '../store/authStore';
 import type { UrgencyLevel, PayType } from '../types';
+
 
 const CATEGORIES = [
   { id: 'electrician', icon: '⚡', label: 'Electrician' },
@@ -57,8 +60,11 @@ const StepIndicator: React.FC<{ current: number; total: number }> = ({ current, 
 );
 
 const PostRequirement: React.FC = () => {
+  const navigate = useNavigate();
+  const { user, role, employerProfileId } = useAuthStore();
   const [step, setStep] = useState(0);
   const [posted, setPosted] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
@@ -94,8 +100,35 @@ const PostRequirement: React.FC = () => {
     update('customerPhotoUrl', url);
   };
 
-  const handleSubmit = () => {
-    setPosted(true);
+  const handleSubmit = async () => {
+    setSubmitError('');
+    if (!user) {
+      navigate('/sign-up?role=employer');
+      return;
+    }
+    if (role === 'worker') {
+      setSubmitError('You need a customer/employer account to post jobs. Please sign up as an employer.');
+      return;
+    }
+    const empId = employerProfileId || 'demo-ep-1';
+    const { error } = await createJob({
+      employer_id: empId,
+      title: form.title,
+      category: form.category,
+      description: form.description,
+      location: form.location,
+      pay_rate: parseFloat(form.payRate) || 0,
+      pay_type: form.payType,
+      duration: form.duration,
+      type: form.listingType,
+      urgency: form.urgency,
+      required_skills: form.skills.split(',').map(s => s.trim()).filter(Boolean),
+    });
+    if (!error) {
+      setPosted(true);
+    } else {
+      setSubmitError('Failed to post job. Please try again.');
+    }
   };
 
   if (posted) {
@@ -117,10 +150,15 @@ const PostRequirement: React.FC = () => {
               </p>
             </div>
           )}
+          {submitError && (
+            <div className="rounded-xl p-3 mb-4" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
+              <p className="text-sm font-semibold text-red-700">{submitError}</p>
+            </div>
+          )}
           <div className="flex flex-col gap-3">
             <Link to="/browse-workers" className="btn btn-primary w-full">Browse Workers Directly</Link>
             <button
-              onClick={() => { setPosted(false); setStep(0); }}
+              onClick={() => { setPosted(false); setStep(0); setSubmitError(''); }}
               className="btn btn-secondary w-full"
             >
               Post Another Job

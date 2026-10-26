@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Search, MapPin, SlidersHorizontal, X, Loader2, LocateFixed, Navigation } from 'lucide-react';
 import JobCard from '../components/jobs/JobCard';
-import { fetchJobs } from '../lib/api';
+import { fetchJobs, applyForJob } from '../lib/api';
 import { getCurrentPosition } from '../lib/geo';
+import { useAuthStore } from '../store/authStore';
 import type { JobListing } from '../types';
+
 
 const CATEGORIES = ['electrician','plumber','carpenter','cook','cleaning','driver','security','painter','welder','mason','acTech','gardener'];
 const JOB_TYPES = ['fullTime','partTime','contract','emergency','weekend','evening'];
@@ -20,6 +22,9 @@ const RADIUS_OPTIONS = [
 const FindWork: React.FC = () => {
   const { t } = useTranslation();
   const [params] = useSearchParams();
+  const navigate = useNavigate();
+  const { user, role, workerProfileId } = useAuthStore();
+
   const [query, setQuery] = useState('');
   const [location, setLocation] = useState(params.get('location') || '');
   const [category, setCategory] = useState(params.get('category') || '');
@@ -90,6 +95,12 @@ const FindWork: React.FC = () => {
 
   const toggleArr = (arr: string[], val: string, setter: (v: string[]) => void) => {
     setter(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
+  };
+
+  const handleApply = async (jobId: string) => {
+    if (!user) { navigate('/sign-in?redirect=/find-work'); return; }
+    if (role !== 'worker') { alert('Only workers can apply for jobs'); return; }
+    await applyForJob(jobId, workerProfileId || 'demo-wp-1', '');
   };
 
   const FiltersPanel = () => (
@@ -274,7 +285,7 @@ const FindWork: React.FC = () => {
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 gap-4 stagger-children">
-                {jobs.map(job => <JobCard key={job.id} job={job} />)}
+                {jobs.map(job => <JobCard key={job.id} job={job} onApply={handleApply} />)}
               </div>
             )}
           </div>
