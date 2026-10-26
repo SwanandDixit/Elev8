@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Clock, Bookmark, BookmarkCheck, Share2, Zap, Shield, Navigation, X } from 'lucide-react';
@@ -146,7 +147,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onApplySuccess }) => {
 
         {/* Pay */}
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg font-bold gradient-text">₹{job.pay_rate.toLocaleString()}</span>
+          <span className="text-lg font-bold gradient-text">₹{(job.pay_rate || 0).toLocaleString()}</span>
           <span className="text-sm text-gray-500">{t(PAY_TYPE_KEY[job.pay_type] || 'misc.fixed')}</span>
           {job.duration && <span className="text-sm text-gray-400">· {job.duration}</span>}
         </div>
@@ -185,27 +186,24 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onApplySuccess }) => {
         </div>
       </div>
 
-      {/* Apply Modal */}
-      {showModal && (
-        <>
+      {/* Apply Modal rendered into document.body */}
+      {showModal && typeof document !== 'undefined' && createPortal(
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
           <div
-            style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', zIndex: 1000 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', zIndex: 100000 }}
             onClick={() => setShowModal(false)}
           />
           <div
             style={{
-              position: 'fixed',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
+              position: 'relative',
               background: '#fff',
               borderRadius: '20px',
               padding: '28px',
-              zIndex: 1001,
+              zIndex: 100001,
               width: '100%',
               maxWidth: '460px',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
-              animation: 'fadeInUp 0.3s ease',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              animation: 'fadeInUp 0.25s ease',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
@@ -249,7 +247,8 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onApplySuccess }) => {
               </button>
             </div>
           </div>
-        </>
+        </div>,
+        document.body
       )}
     </>
   );

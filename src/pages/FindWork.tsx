@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Search, MapPin, SlidersHorizontal, X, Loader2, LocateFixed, Navigation } from 'lucide-react';
 import JobCard from '../components/jobs/JobCard';
-import { fetchJobs, applyForJob } from '../lib/api';
+import { fetchJobs } from '../lib/api';
 import { getCurrentPosition } from '../lib/geo';
-import { useAuthStore } from '../store/authStore';
 import type { JobListing } from '../types';
 
 
@@ -22,8 +21,6 @@ const RADIUS_OPTIONS = [
 const FindWork: React.FC = () => {
   const { t } = useTranslation();
   const [params] = useSearchParams();
-  const navigate = useNavigate();
-  const { user, role, workerProfileId } = useAuthStore();
 
   const [query, setQuery] = useState('');
   const [location, setLocation] = useState(params.get('location') || '');
@@ -97,10 +94,8 @@ const FindWork: React.FC = () => {
     setter(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
   };
 
-  const handleApply = async (jobId: string) => {
-    if (!user) { navigate('/sign-in?redirect=/find-work'); return; }
-    if (role !== 'worker') { alert('Only workers can apply for jobs'); return; }
-    await applyForJob(jobId, workerProfileId || 'demo-wp-1', '');
+  const handleApply = () => {
+    // Application submitted inside JobCard
   };
 
   const FiltersPanel = () => (

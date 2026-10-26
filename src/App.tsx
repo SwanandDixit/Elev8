@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
+import ErrorBoundary from './components/ui/ErrorBoundary';
 
 // Layouts & Components
 import Layout from './components/layout/Layout';
@@ -62,46 +63,48 @@ function App() {
   }, [initialize]);
 
   return (
-    <Router>
-      <Routes>
-        {/* Auth routes (no layout) */}
-        <Route path="/sign-in" element={<AuthRoute><SignIn /></AuthRoute>} />
-        <Route path="/sign-up" element={<AuthRoute><SignUp /></AuthRoute>} />
-        <Route path="/forgot-password" element={<AuthRoute><ForgotPassword /></AuthRoute>} />
+    <ErrorBoundary>
+      <Router>
+        <Routes>
+          {/* Auth routes (no layout) */}
+          <Route path="/sign-in" element={<AuthRoute><SignIn /></AuthRoute>} />
+          <Route path="/sign-up" element={<AuthRoute><SignUp /></AuthRoute>} />
+          <Route path="/forgot-password" element={<AuthRoute><ForgotPassword /></AuthRoute>} />
 
-        {/* Dashboard routes (have their own layouts) */}
-        <Route path="/dashboard/worker" element={
-          <ProtectedRoute allowedRoles={['worker']}>
-            <WorkerDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/dashboard/employer" element={
-          <ProtectedRoute allowedRoles={['employer']}>
-            <EmployerDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminPanel />
-          </ProtectedRoute>
-        } />
+          {/* Dashboard routes (have their own layouts) */}
+          <Route path="/dashboard/worker" element={
+            <ProtectedRoute allowedRoles={['worker']}>
+              <WorkerDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/employer" element={
+            <ProtectedRoute allowedRoles={['employer']}>
+              <EmployerDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminPanel />
+            </ProtectedRoute>
+          } />
 
-        {/* Public routes (with standard layout) */}
-        <Route element={<Layout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/find-work" element={<FindWork />} />
-          <Route path="/browse-workers" element={<BrowseWorkers />} />
-          <Route path="/worker/:id" element={<WorkerProfile />} />
-          <Route path="/post-requirements" element={<PostRequirement />} />
-          <Route path="/register-worker" element={<RegisterWorker />} />
-          <Route path="/certifications" element={<Certifications />} />
-          <Route path="/about" element={<About />} />
-        </Route>
-        
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+          {/* Public routes (with standard layout) */}
+          <Route element={<Layout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/find-work" element={<FindWork />} />
+            <Route path="/browse-workers" element={<BrowseWorkers />} />
+            <Route path="/worker/:id" element={<WorkerProfile />} />
+            <Route path="/post-requirements" element={<PostRequirement />} />
+            <Route path="/register-worker" element={<RegisterWorker />} />
+            <Route path="/certifications" element={<Certifications />} />
+            <Route path="/about" element={<About />} />
+          </Route>
+          
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

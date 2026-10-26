@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { 
@@ -6,7 +7,7 @@ import {
   Award, Settings, LogOut, Menu, X, ChevronRight, Star,
   CheckCircle, Eye, Calendar, Clock, Loader2, Save, Navigation, MapPin
 } from 'lucide-react';
-import { fetchWorkerByUserId, fetchWorkerApplications, fetchCertifications, updateWorkerProfile, fetchJobs } from '../lib/api';
+import { fetchWorkerByUserId, fetchWorkerApplications, fetchCertifications, updateWorkerProfile, fetchJobs, applyForJob } from '../lib/api';
 import type { WorkerProfile, JobApplication, Certification, JobListing } from '../types';
 import { Link } from 'react-router-dom';
 
@@ -23,6 +24,12 @@ const WorkerDashboard: React.FC = () => {
   const [nearbyJobs, setNearbyJobs] = useState<JobListing[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Quick Apply state
+  const [applyingJob, setApplyingJob] = useState<JobListing | null>(null);
+  const [coverMessage, setCoverMessage] = useState('');
+  const [submittingApp, setSubmittingApp] = useState(false);
+  const [applySuccessMessage, setApplySuccessMessage] = useState('');
 
   // Profile form state
   const [form, setForm] = useState({ first_name: '', last_name: '', title: '', bio: '', city: '', state: '', hourly_rate: 0 });
@@ -54,6 +61,21 @@ const WorkerDashboard: React.FC = () => {
     setSaving(true);
     await updateWorkerProfile(user.id, form);
     setSaving(false);
+  };
+
+  const handleApplyToJob = async () => {
+    if (!applyingJob) return;
+    setSubmittingApp(true);
+    const workerId = worker?.id || 'demo-wp-1';
+    const { data: newApp, error } = await applyForJob(applyingJob.id, workerId, coverMessage);
+    setSubmittingApp(false);
+    if (!error && newApp) {
+      setApplications(prev => [newApp, ...prev.filter(a => a.job_id !== applyingJob.id)]);
+      setApplySuccessMessage(`Successfully applied for "${applyingJob.title}"!`);
+      setApplyingJob(null);
+      setCoverMessage('');
+      setTimeout(() => setApplySuccessMessage(''), 4000);
+    }
   };
 
 
@@ -190,6 +212,16 @@ const WorkerDashboard: React.FC = () => {
               </button>
             </div>
 
+            {/* Apply success toast notification */}
+            {applySuccessMessage && (
+              <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm font-semibold flex items-center justify-between shadow-sm animate-fade-in">
+                <span>✅ {applySuccessMessage}</span>
+                <button onClick={() => setApplySuccessMessage('')} className="text-emerald-600 hover:text-emerald-800">
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+
             {/* Location-based Jobs Near You */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
@@ -216,29 +248,44 @@ const WorkerDashboard: React.FC = () => {
                 </div>
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
-                  {nearbyJobs.map(job => (
-                    <div key={job.id} className="card glow-card p-4 flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="badge badge-new text-xs">{job.category}</span>
-                          {job.distance !== undefined && (
-                            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
-                              <Navigation size={9} className="text-emerald-600 fill-emerald-600" />
-                              {job.distance < 1 ? '< 1 km' : `${job.distance} km away`}
+                  {nearbyJobs.map(job => {
+                    const isApplied = applications.some(a => a.job_id === job.id);
+                    return (
+                      <div key={job.id} className="card glow-card p-4 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="badge badge-new text-xs">{job.category}</span>
+                            {job.distance !== undefined && (
+                              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                                <Navigation size={9} className="text-emerald-600 fill-emerald-600" />
+                                {job.distance < 1 ? '< 1 km' : `${job.distance} km away`}
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="font-semibold text-gray-900 text-sm line-clamp-1 mb-1">{job.title}</h4>
+                          <p className="text-xs text-gray-500 mb-3 flex items-center gap-1">
+                            <MapPin size={11} className="text-gray-400" /> {job.location}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                          <span className="text-sm font-bold gradient-text">₹{job.pay_rate}</span>
+                          {isApplied ? (
+                            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                              ✓ Applied
                             </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => { setApplyingJob(job); setCoverMessage(''); }}
+                              className="btn btn-primary btn-sm text-xs py-1 px-3"
+                            >
+                              Apply Now
+                            </button>
                           )}
                         </div>
-                        <h4 className="font-semibold text-gray-900 text-sm line-clamp-1 mb-1">{job.title}</h4>
-                        <p className="text-xs text-gray-500 mb-3 flex items-center gap-1">
-                          <MapPin size={11} className="text-gray-400" /> {job.location}
-                        </p>
                       </div>
-                      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                        <span className="text-sm font-bold gradient-text">₹{job.pay_rate}</span>
-                        <Link to="/find-work" className="btn btn-secondary btn-sm text-xs py-1 px-3">Apply</Link>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -256,8 +303,11 @@ const WorkerDashboard: React.FC = () => {
                       <Briefcase size={20} className="text-[var(--primary)]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900">{(app.job as any)?.title || 'Job'}</h3>
-                      <p className="text-sm text-gray-500">{(app.job as any)?.location || ''}</p>
+                      <h3 className="font-semibold text-gray-900">{(app.job as any)?.title || 'Application'}</h3>
+                      <p className="text-sm text-gray-500">
+                        {((app.job as any)?.employer?.name || (app.job as any)?.employer?.company_name) ? `${(app.job as any)?.employer?.name || (app.job as any)?.employer?.company_name} · ` : ''}
+                        {(app.job as any)?.location || 'Local'}
+                      </p>
                     </div>
                     <span className={`badge ${app.status === 'hired' ? 'badge-verified' : app.status === 'shortlisted' ? 'bg-purple-50 text-purple-600' : app.status === 'rejected' ? 'badge-rejected' : 'bg-blue-50 text-blue-600'}`}>
                       {app.status}
@@ -355,8 +405,11 @@ const WorkerDashboard: React.FC = () => {
                       <Briefcase size={22} className="text-[var(--primary)]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900">{(app.job as any)?.title || 'Job'}</h3>
-                      <p className="text-sm text-gray-500">{(app.job as any)?.employer?.name} · {(app.job as any)?.location}</p>
+                      <h3 className="font-semibold text-gray-900">{(app.job as any)?.title || 'Application'}</h3>
+                      <p className="text-sm text-gray-500">
+                        {((app.job as any)?.employer?.name || (app.job as any)?.employer?.company_name) ? `${(app.job as any)?.employer?.name || (app.job as any)?.employer?.company_name} · ` : ''}
+                        {(app.job as any)?.location || 'Local'}
+                      </p>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={`badge ${app.status === 'hired' ? 'badge-verified' : app.status === 'shortlisted' ? 'bg-purple-50 text-purple-600' : app.status === 'rejected' ? 'badge-rejected' : 'bg-blue-50 text-blue-600'}`}>
@@ -468,6 +521,81 @@ const WorkerDashboard: React.FC = () => {
           </>
         )}
       </div>
+
+      {/* Quick Apply Modal rendered into document.body */}
+      {applyingJob && typeof document !== 'undefined' && createPortal(
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div
+            style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', zIndex: 100000 }}
+            onClick={() => setApplyingJob(null)}
+          />
+          <div
+            style={{
+              position: 'relative',
+              background: '#fff',
+              borderRadius: '20px',
+              padding: '28px',
+              zIndex: 100001,
+              width: '100%',
+              maxWidth: '460px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              animation: 'fadeInUp 0.25s ease',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ fontWeight: 700, fontSize: '18px', color: '#0F172A' }}>Apply for Job</h3>
+                <p style={{ fontSize: '13px', color: '#64748B', marginTop: '4px' }}>{applyingJob.title}</p>
+              </div>
+              <button onClick={() => setApplyingJob(null)} style={{ padding: '4px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer' }}>
+                <X size={20} color="#94A3B8" />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+              <span className="badge badge-new text-xs">{applyingJob.category}</span>
+              <span className="text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-0.5 rounded-full">
+                ₹{applyingJob.pay_rate} {applyingJob.pay_type}
+              </span>
+              <span className="text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-200">
+                📍 {applyingJob.location}
+              </span>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '16px' }}>
+              <label className="label">Cover Message (optional)</label>
+              <textarea
+                className="textarea"
+                rows={4}
+                placeholder="Tell the employer when you're available and why you're a great fit..."
+                value={coverMessage}
+                onChange={e => setCoverMessage(e.target.value)}
+                style={{ resize: 'vertical' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                className="btn btn-ghost"
+                style={{ flex: 1 }}
+                onClick={() => setApplyingJob(null)}
+                disabled={submittingApp}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                style={{ flex: 2 }}
+                onClick={handleApplyToJob}
+                disabled={submittingApp}
+              >
+                {submittingApp ? 'Submitting...' : '🚀 Submit Application'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
