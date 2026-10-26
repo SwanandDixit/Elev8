@@ -295,7 +295,7 @@ const FindWork: React.FC = () => {
       {filterOpen && (
         <>
           <div className="overlay" onClick={() => setFilterOpen(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto animate-fade-in">
+          <div className="fixed bottom-0 left-0 right-0 z-[1000] bg-white rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto animate-fade-in shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold">{t('findWork.filters')}</h3>
               <button onClick={() => setFilterOpen(false)}><X size={20} /></button>

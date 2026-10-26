@@ -189,7 +189,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onApplySuccess }) => {
       {showModal && (
         <>
           <div
-            style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', zIndex: 1000, backdropFilter: 'blur(4px)' }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', zIndex: 1000 }}
             onClick={() => setShowModal(false)}
           />
           <div
