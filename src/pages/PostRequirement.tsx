@@ -66,6 +66,7 @@ const PostRequirement: React.FC = () => {
   const [step, setStep] = useState(0);
   const [posted, setPosted] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [roleError, setRoleError] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
@@ -109,7 +110,7 @@ const PostRequirement: React.FC = () => {
       return;
     }
     if (role === 'worker') {
-      setSubmitError('You need a customer/employer account to post jobs. Please sign up as an employer.');
+      setRoleError(true);
       return;
     }
     // Show the premium listing modal first — job is created after payment
@@ -139,6 +140,29 @@ const PostRequirement: React.FC = () => {
       setSubmitError('Failed to post job. Please try again.');
     }
   };
+
+  // Workers should not access this page — show a clear redirect UI
+  if (user && role === 'worker') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--bg)' }}>
+        <div className="card max-w-md w-full text-center p-8">
+          <div className="text-5xl mb-4">🏠</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">This page is for Employers</h2>
+          <p className="text-gray-500 mb-6">
+            You're signed in as a worker. Use your dashboard to find and apply for jobs.
+          </p>
+          <div className="flex flex-col gap-3">
+            <button onClick={() => navigate('/dashboard/worker')} className="btn btn-primary w-full">
+              Go to Worker Dashboard
+            </button>
+            <button onClick={() => navigate('/find-work')} className="btn btn-secondary w-full">
+              Browse Jobs Instead
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (posted) {
     return (
@@ -187,6 +211,19 @@ const PostRequirement: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Post a Job Requirement</h1>
           <p className="text-gray-500 mt-1">Find the right worker for your needs</p>
         </div>
+
+        {/* Role error — shown when a worker tries to post a job */}
+        {roleError && (
+          <div className="card max-w-md mx-auto text-center p-8">
+            <div className="text-5xl mb-4">🏠</div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Wrong Account Type</h2>
+            <p className="text-gray-500 mb-6">This page is for employers. You're signed in as a worker.</p>
+            <div className="flex flex-col gap-3">
+              <button onClick={() => navigate('/dashboard/worker')} className="btn btn-primary">Go to Worker Dashboard</button>
+              <button onClick={() => navigate('/find-work')} className="btn btn-secondary">Find Jobs Instead</button>
+            </div>
+          </div>
+        )}
 
         <StepIndicator current={step} total={STEPS.length} />
 

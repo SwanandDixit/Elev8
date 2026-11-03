@@ -628,5 +628,4 @@ const WorkerDashboard: React.FC = () => {
     </div>
   );
 };
-
 export default WorkerDashboard;

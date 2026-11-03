@@ -10,29 +10,28 @@ const Footer: React.FC = () => {
     {
       title: t('footer.platform'),
       links: [
-        { label: t('footer.findWork'), to: '/find-work' },
-        { label: t('footer.browseWorkers'), to: '/browse-workers' },
-        { label: t('footer.postRequirement'), to: '/post-requirements' },
-        { label: t('footer.certifications'), to: '/certifications' },
+        { label: t('footer.findWork'), to: '/find-work', internal: true },
+        { label: t('footer.browseWorkers'), to: '/browse-workers', internal: true },
+        { label: t('footer.postRequirement'), to: '/post-requirements', internal: true },
+        { label: t('footer.certifications'), to: '/certifications', internal: true },
       ],
     },
     {
       title: t('footer.company'),
       links: [
-        { label: t('footer.about'), to: '/about' },
-        { label: t('footer.privacy'), to: '/privacy' },
-        { label: t('footer.terms'), to: '/terms' },
+        { label: t('footer.about'), to: '/about', internal: true },
+        { label: t('footer.privacy'), to: '/privacy', internal: true },
+        { label: t('footer.terms'), to: '/terms', internal: true },
       ],
     },
     {
       title: t('footer.support'),
       links: [
-        { label: t('footer.helpCenter'), to: '/help' },
-        { label: t('footer.contactUs'), to: '/contact' },
-        { label: t('footer.safetyTips'), to: '/safety' },
+        { label: t('footer.helpCenter'), to: '/help', internal: true },
+        { label: t('footer.contactUs'), to: '/contact', internal: true },
+        { label: t('footer.safetyTips'), to: '/safety', internal: true },
       ],
-    },
-  ];
+    },  ];
 
   return (
     <footer className="bg-[#0F172A] text-gray-300 mt-auto">
@@ -58,20 +57,26 @@ const Footer: React.FC = () => {
 
         {/* Link columns — 3 instead of 5 */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-8 border-t border-slate-800 pt-10">
-          {cols.map((col) => (
-            <div key={col.title}>
-              <h4 className="text-white font-semibold text-sm mb-4">{col.title}</h4>
-              <ul className="space-y-2.5">
-                {col.links.map((link) => (
-                  <li key={link.label}>
+        {cols.map((col) => (
+          <div key={col.title}>
+            <h4 className="text-white font-semibold text-sm mb-4">{col.title}</h4>
+            <ul className="space-y-2.5">
+              {col.links.map((link) => (
+                <li key={link.label}>
+                  {link.internal ? (
                     <Link to={link.to} className="text-sm text-slate-400 hover:text-white transition-colors">
                       {link.label}
                     </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+                  ) : (
+                    <a href={link.to} className="text-sm text-slate-400 hover:text-white transition-colors">
+                      {link.label}
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
         </div>
 
         {/* Bottom */}
@@ -80,8 +85,7 @@ const Footer: React.FC = () => {
           <div className="flex gap-4 text-sm text-slate-500">
             <Link to="/privacy" className="hover:text-white transition-colors">{t('footer.privacy')}</Link>
             <Link to="/terms" className="hover:text-white transition-colors">{t('footer.terms')}</Link>
-          </div>
-        </div>
+          </div>        </div>
       </div>
     </footer>
   );

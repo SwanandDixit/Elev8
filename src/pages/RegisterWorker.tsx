@@ -57,7 +57,7 @@ const RegisterWorker: React.FC = () => {
         </div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">{t('registerWorker.successTitle')}</h2>
         <p className="text-gray-600 mb-6">{t('registerWorker.successDesc')}</p>
-        <button onClick={() => navigate('/sign-in')} className="btn btn-primary w-full">{t('auth.signIn')}</button>
+        <button onClick={() => navigate('/dashboard/worker')} className="btn btn-primary w-full">Go to Dashboard</button>
       </div>
     </div>
   );

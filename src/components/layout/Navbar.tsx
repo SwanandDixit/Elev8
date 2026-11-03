@@ -87,7 +87,7 @@ const Navbar: React.FC = () => {
                       {t('nav.dashboard')}
                     </Link>
                     <hr className="my-1 border-gray-100" />
-                    <button onClick={() => { signOut(); setUserMenuOpen(false); navigate('/'); }} className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 font-medium">
+                    <button onClick={async () => { await signOut(); setUserMenuOpen(false); navigate('/'); }} className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 font-medium">
                       {t('nav.signOut')}
                     </button>
                   </div>
@@ -130,7 +130,7 @@ const Navbar: React.FC = () => {
             {user ? (
               <>
                 <Link to={dashboardPath} className="btn btn-secondary" onClick={() => setMobileOpen(false)}>{t('nav.dashboard')}</Link>
-                <button onClick={() => { signOut(); setMobileOpen(false); navigate('/'); }} className="btn btn-ghost text-red-500">{t('nav.signOut')}</button>
+                <button onClick={async () => { await signOut(); setMobileOpen(false); navigate('/'); }} className="btn btn-ghost text-red-500">{t('nav.signOut')}</button>
               </>
             ) : (
               <>

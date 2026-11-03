@@ -15,6 +15,7 @@ import PostRequirement from './pages/PostRequirement';
 import RegisterWorker from './pages/RegisterWorker';
 import Certifications from './pages/Certifications';
 import About from './pages/About';
+import ComingSoon from './pages/ComingSoon';
 
 // Auth
 import SignIn from './pages/SignIn';
@@ -98,6 +99,11 @@ function App() {
             <Route path="/register-worker" element={<RegisterWorker />} />
             <Route path="/certifications" element={<Certifications />} />
             <Route path="/about" element={<About />} />
+            <Route path="/privacy" element={<ComingSoon />} />
+            <Route path="/terms" element={<ComingSoon />} />
+            <Route path="/help" element={<ComingSoon />} />
+            <Route path="/contact" element={<ComingSoon />} />
+            <Route path="/safety" element={<ComingSoon />} />
           </Route>
           
           {/* Fallback */}
