@@ -150,6 +150,7 @@ export async function createJob(payload: {
   type?: 'business' | 'household';
   urgency?: 'normal' | 'urgent' | 'very_urgent';
   required_skills?: string[];
+  is_premium?: boolean;
 }) {
   if (isDemo) {
     const mockJob: JobListing = {
@@ -157,7 +158,7 @@ export async function createJob(payload: {
       ...payload,
       type: payload.type || 'business',
       urgency: payload.urgency || 'normal',
-      is_premium: false,
+      is_premium: payload.is_premium ?? false,
       status: 'active',
       expires_at: new Date(Date.now() + 30 * 86400000).toISOString(),
       created_at: new Date().toISOString(),

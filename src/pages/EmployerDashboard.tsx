@@ -10,6 +10,7 @@ import {
 import { Link } from 'react-router-dom';
 import { MOCK_JOBS, MOCK_WORKERS } from '../lib/mockData';
 import NegotiationPanel from '../components/negotiation/NegotiationPanel';
+import HiringPaymentModal from '../components/payment/HiringPaymentModal';
 
 /* ────────────────────────────────────────────────────────── */
 /* Constants                                                  */
@@ -50,6 +51,11 @@ const EmployerDashboard: React.FC = () => {
   const [selectedApplication, setSelectedApplication] = useState<typeof MOCK_APPLICATIONS[0] | null>(null);
   const [notifications] = useState(3);
   const photoRef = useRef<HTMLInputElement>(null);
+
+  // Hiring payment modal state
+  const [hiringTarget, setHiringTarget] = useState<{
+    workerName: string; jobTitle: string; agreedRate: number; payType: string; appId: string;
+  } | null>(null);
 
   // Profile form state
   const [profile, setProfile] = useState({
@@ -157,6 +163,7 @@ const EmployerDashboard: React.FC = () => {
 
   /* ═══════════════════════════════════════════════════════ */
   return (
+    <>
     <div className="min-h-screen flex flex-col md:flex-row pb-20 md:pb-0" style={{ background: 'var(--bg)' }}>
 
       {/* Mobile top bar */}
@@ -523,8 +530,17 @@ const EmployerDashboard: React.FC = () => {
 
                       {/* Actions */}
                       <div className="flex gap-2 pt-4 border-t border-gray-100">
-                        <button className="btn btn-primary flex-1 flex items-center justify-center gap-1.5 text-sm">
-                          <CheckCircle size={14} /> Shortlist
+                        <button
+                          className="btn btn-primary flex-1 flex items-center justify-center gap-1.5 text-sm"
+                          onClick={() => setHiringTarget({
+                            workerName: `${selectedApplication.worker.first_name} ${selectedApplication.worker.last_name}`,
+                            jobTitle: selectedApplication.job?.title || 'Job',
+                            agreedRate: selectedApplication.proposed_rate || selectedApplication.job?.pay_rate || 500,
+                            payType: selectedApplication.job?.pay_type || 'daily',
+                            appId: selectedApplication.id,
+                          })}
+                        >
+                          <CheckCircle size={14} /> Hire & Pay Deposit
                         </button>
                         <button className="btn btn-secondary flex items-center gap-1.5 text-sm">
                           <MessageSquare size={14} /> Message
@@ -866,6 +882,22 @@ const EmployerDashboard: React.FC = () => {
         )}
       </div>
     </div>
+
+      {/* Hiring Payment Modal */}
+      {hiringTarget && (
+        <HiringPaymentModal
+          workerName={hiringTarget.workerName}
+          jobTitle={hiringTarget.jobTitle}
+          agreedRateINR={hiringTarget.agreedRate}
+          payType={hiringTarget.payType}
+          onClose={() => setHiringTarget(null)}
+          onSuccess={(paymentId) => {
+            console.log('Hired! Payment:', paymentId, 'App:', hiringTarget.appId);
+            setHiringTarget(null);
+          }}
+        />
+      )}
+    </>
   );
 };
 

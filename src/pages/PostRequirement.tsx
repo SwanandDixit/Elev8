@@ -9,6 +9,7 @@ import { getPriceEstimate } from '../lib/pricing';
 import { createJob } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import type { UrgencyLevel, PayType } from '../types';
+import PremiumListingModal from '../components/payment/PremiumListingModal';
 
 
 const CATEGORIES = [
@@ -65,6 +66,7 @@ const PostRequirement: React.FC = () => {
   const [step, setStep] = useState(0);
   const [posted, setPosted] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
@@ -110,6 +112,12 @@ const PostRequirement: React.FC = () => {
       setSubmitError('You need a customer/employer account to post jobs. Please sign up as an employer.');
       return;
     }
+    // Show the premium listing modal first — job is created after payment
+    setShowPremiumModal(true);
+  };
+
+  const handlePostAfterPayment = async (planId: string, _paymentId: string) => {
+    setShowPremiumModal(false);
     const empId = employerProfileId || 'demo-ep-1';
     const { error } = await createJob({
       employer_id: empId,
@@ -123,6 +131,7 @@ const PostRequirement: React.FC = () => {
       type: form.listingType,
       urgency: form.urgency,
       required_skills: form.skills.split(',').map(s => s.trim()).filter(Boolean),
+      is_premium: planId !== 'standard',
     });
     if (!error) {
       setPosted(true);
@@ -699,8 +708,16 @@ const PostRequirement: React.FC = () => {
           </div>
         </div>
       </div>
+      {showPremiumModal && (
+        <PremiumListingModal
+          jobTitle={form.title || form.category || 'New Job'}
+          onClose={() => setShowPremiumModal(false)}
+          onSuccess={handlePostAfterPayment}
+        />
+      )}
     </div>
   );
 };
 
 export default PostRequirement;
+

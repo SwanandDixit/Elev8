@@ -10,6 +10,7 @@ import {
 import { fetchWorkerByUserId, fetchWorkerApplications, fetchCertifications, updateWorkerProfile, fetchJobs, applyForJob } from '../lib/api';
 import type { WorkerProfile, JobApplication, Certification, JobListing } from '../types';
 import { Link } from 'react-router-dom';
+import WorkerPremiumModal from '../components/payment/WorkerPremiumModal';
 
 const WorkerDashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -30,6 +31,9 @@ const WorkerDashboard: React.FC = () => {
   const [coverMessage, setCoverMessage] = useState('');
   const [submittingApp, setSubmittingApp] = useState(false);
   const [applySuccessMessage, setApplySuccessMessage] = useState('');
+
+  // Premium upgrade modal state
+  const [showWorkerPremium, setShowWorkerPremium] = useState(false);
 
   // Profile form state
   const [form, setForm] = useState({ first_name: '', last_name: '', title: '', bio: '', city: '', state: '', hourly_rate: 0 });
@@ -219,6 +223,19 @@ const WorkerDashboard: React.FC = () => {
                 <button onClick={() => setApplySuccessMessage('')} className="text-emerald-600 hover:text-emerald-800">
                   <X size={16} />
                 </button>
+              </div>
+            )}
+
+            {/* Go Premium banner */}
+            {!worker?.is_premium && (
+              <div className="card mb-6" style={{ background: 'linear-gradient(135deg, #EEF2FF, #F5F3FF)', border: '1px solid #C7D2FE' }}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-indigo-900 flex items-center gap-2">👑 Go Premium</p>
+                    <p className="text-sm text-indigo-700 mt-0.5">Get verified badge, rank higher, and land more jobs.</p>
+                  </div>
+                  <button className="btn btn-primary btn-sm" onClick={() => setShowWorkerPremium(true)}>Upgrade</button>
+                </div>
               </div>
             )}
 
@@ -595,6 +612,18 @@ const WorkerDashboard: React.FC = () => {
           </div>
         </div>,
         document.body
+      )}
+
+      {/* Worker Premium Upgrade Modal */}
+      {showWorkerPremium && (
+        <WorkerPremiumModal
+          onClose={() => setShowWorkerPremium(false)}
+          onSuccess={(planId, paymentId) => {
+            console.log('Premium activated! Plan:', planId, 'Payment:', paymentId);
+            setShowWorkerPremium(false);
+            setApplySuccessMessage('🎉 Premium activated! Your profile is now verified.');
+          }}
+        />
       )}
     </div>
   );
