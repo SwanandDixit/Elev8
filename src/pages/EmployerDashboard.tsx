@@ -56,6 +56,8 @@ const EmployerDashboard: React.FC = () => {
   const [hiringTarget, setHiringTarget] = useState<{
     workerName: string; jobTitle: string; agreedRate: number; payType: string; appId: string;
   } | null>(null);
+  const [hiredAppIds, setHiredAppIds] = useState<Set<string>>(new Set());
+  const [hireSuccessMsg, setHireSuccessMsg] = useState('');
 
   // Profile form state
   const [profile, setProfile] = useState({
@@ -432,6 +434,14 @@ const EmployerDashboard: React.FC = () => {
           <div className="max-w-5xl animate-fade-in">
             <h1 className="text-2xl font-bold text-gray-900 mb-6">Applications Received</h1>
 
+            {hireSuccessMsg && (
+              <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2 text-green-800 font-medium text-sm"
+                style={{ background: '#ECFDF5', border: '1px solid #A7F3D0' }}>
+                <CheckCircle size={16} className="text-green-600 flex-shrink-0" />
+                {hireSuccessMsg}
+              </div>
+            )}
+
             <div className="grid lg:grid-cols-5 gap-5">
               {/* Applications list */}
               <div className="lg:col-span-2 flex flex-col gap-3">
@@ -460,10 +470,10 @@ const EmployerDashboard: React.FC = () => {
                       <div className="text-right">
                         <span className="text-xs font-semibold px-2 py-0.5 rounded-full block mb-1"
                           style={{
-                            color: STATUS_LABELS[app.status]?.color,
-                            background: STATUS_LABELS[app.status]?.bg,
+                            color: hiredAppIds.has(app.id) ? '#10B981' : STATUS_LABELS[app.status]?.color,
+                            background: hiredAppIds.has(app.id) ? '#ECFDF5' : STATUS_LABELS[app.status]?.bg,
                           }}>
-                          {STATUS_LABELS[app.status]?.label}
+                          {hiredAppIds.has(app.id) ? 'Hired ✓' : STATUS_LABELS[app.status]?.label}
                         </span>
                         <div className="text-xs font-bold text-gray-900">₹{app.proposed_rate}</div>
                         <div className="text-xs text-gray-400">{app.job?.pay_type}</div>
@@ -530,18 +540,26 @@ const EmployerDashboard: React.FC = () => {
 
                       {/* Actions */}
                       <div className="flex gap-2 pt-4 border-t border-gray-100">
-                        <button
-                          className="btn btn-primary flex-1 flex items-center justify-center gap-1.5 text-sm"
-                          onClick={() => setHiringTarget({
-                            workerName: `${selectedApplication.worker.first_name} ${selectedApplication.worker.last_name}`,
-                            jobTitle: selectedApplication.job?.title || 'Job',
-                            agreedRate: selectedApplication.proposed_rate || selectedApplication.job?.pay_rate || 500,
-                            payType: selectedApplication.job?.pay_type || 'daily',
-                            appId: selectedApplication.id,
-                          })}
-                        >
-                          <CheckCircle size={14} /> Hire & Pay Deposit
-                        </button>
+                        {hiredAppIds.has(selectedApplication.id) ? (
+                          <button className="btn flex-1 flex items-center justify-center gap-1.5 text-sm font-semibold"
+                            style={{ background: '#ECFDF5', color: '#10B981', border: '1px solid #A7F3D0' }}
+                            disabled>
+                            <CheckCircle size={14} /> Hired ✓
+                          </button>
+                        ) : (
+                          <button
+                            className="btn btn-primary flex-1 flex items-center justify-center gap-1.5 text-sm"
+                            onClick={() => setHiringTarget({
+                              workerName: `${selectedApplication.worker.first_name} ${selectedApplication.worker.last_name}`,
+                              jobTitle: selectedApplication.job?.title || 'Job',
+                              agreedRate: selectedApplication.proposed_rate || selectedApplication.job?.pay_rate || 500,
+                              payType: selectedApplication.job?.pay_type || 'daily',
+                              appId: selectedApplication.id,
+                            })}
+                          >
+                            <CheckCircle size={14} /> Hire &amp; Pay Deposit
+                          </button>
+                        )}
                         <button className="btn btn-secondary flex items-center gap-1.5 text-sm">
                           <MessageSquare size={14} /> Message
                         </button>
@@ -893,7 +911,10 @@ const EmployerDashboard: React.FC = () => {
           onClose={() => setHiringTarget(null)}
           onSuccess={(paymentId) => {
             console.log('Hired! Payment:', paymentId, 'App:', hiringTarget.appId);
+            setHiredAppIds(prev => new Set([...prev, hiringTarget.appId]));
+            setHireSuccessMsg(`Worker hired successfully! They will be notified. (Payment: ${paymentId})`);
             setHiringTarget(null);
+            setTimeout(() => setHireSuccessMsg(''), 4000);
           }}
         />
       )}

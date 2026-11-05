@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, ChevronRight, ChevronLeft, User, Briefcase, Award, Lock } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
 
 const CATEGORIES = ['electrician','plumber','carpenter','cook','cleaning','driver','security','painter','welder','mason','acTech','gardener'];
 const EXP_LEVELS = ['exp_0_1','exp_1_3','exp_3_5','exp_5_10','exp_10plus'];
@@ -28,14 +29,21 @@ const StepIndicator: React.FC<{ step: number }> = ({ step }) => {
 const RegisterWorker: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [prefs, setPrefs] = useState<string[]>([]);
+
+  // Pre-fill name and email from auth store when available
+  const authName = user?.name || '';
+  const authFirstName = authName.split(' ')[0] || '';
+  const authLastName = authName.split(' ').slice(1).join(' ') || '';
+
   const [form, setForm] = useState({
-    firstName:'', lastName:'', email:'', phone:'', city:'', state:'',
-    profTitle:'', expLevel:'', bio:'', primarySkill:'', skills:'',
-    certs:'', hourlyRate:'', travelDist:'dist_25', availability:'availableNow',
-    password:'', confirmPassword:'', premium: false, terms: false,
+    firstName: authFirstName, lastName: authLastName, email: user?.email || '', phone: '', city: '', state: '',
+    profTitle: '', expLevel: '', bio: '', primarySkill: '', skills: '',
+    certs: '', hourlyRate: '', travelDist: 'dist_25', availability: 'availableNow',
+    password: '', confirmPassword: '', premium: false, terms: false,
   });
   const set = (k: string, v: string | boolean) => setForm(f => ({ ...f, [k]: v }));
   const togglePref = (p: string) => setPrefs(prev => prev.includes(p) ? prev.filter(x=>x!==p) : [...prev, p]);

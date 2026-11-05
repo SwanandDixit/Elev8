@@ -190,9 +190,10 @@ const PostRequirement: React.FC = () => {
           )}
           <div className="flex flex-col gap-3">
             <Link to="/browse-workers" className="btn btn-primary w-full">Browse Workers Directly</Link>
+            <Link to="/dashboard/employer" className="btn btn-secondary w-full">View My Dashboard</Link>
             <button
               onClick={() => { setPosted(false); setStep(0); setSubmitError(''); }}
-              className="btn btn-secondary w-full"
+              className="btn btn-ghost w-full"
             >
               Post Another Job
             </button>

@@ -1,18 +1,52 @@
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MapPin, Star, CheckCircle, Zap, Clock, MessageSquare, ChevronLeft } from 'lucide-react';
 import { MOCK_WORKERS, MOCK_REVIEWS } from '../lib/mockData';
+import { useAuthStore } from '../store/authStore';
+import HiringPaymentModal from '../components/payment/HiringPaymentModal';
 
 const WorkerProfile: React.FC = () => {
   const { t } = useTranslation();
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user, role } = useAuthStore();
   const worker = MOCK_WORKERS.find(w => w.id === id) || MOCK_WORKERS[0];
   const reviews = MOCK_REVIEWS.filter(r => r.worker_id === worker.id);
   const initials = `${worker.first_name[0]}${worker.last_name[0]}`.toUpperCase();
 
+  const [showHireModal, setShowHireModal] = useState(false);
+  const [hireToast, setHireToast] = useState('');
+  const [hireSuccess, setHireSuccess] = useState(false);
+
+  const handleHireClick = () => {
+    if (!user) {
+      navigate('/sign-up');
+      return;
+    }
+    if (role === 'worker') {
+      setHireToast('You need a Customer account to hire workers.');
+      setTimeout(() => setHireToast(''), 3500);
+      return;
+    }
+    setShowHireModal(true);
+  };
+
   return (
     <div className="min-h-screen bg-[var(--bg)] pb-20 md:pb-0">
+      {/* Toast notification */}
+      {hireToast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium text-white"
+          style={{ background: '#EF4444' }}>
+          {hireToast}
+        </div>
+      )}
+      {hireSuccess && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium text-white"
+          style={{ background: '#10B981' }}>
+          🎉 Worker hired successfully!
+        </div>
+      )}
       <div className="container py-6">
         <Link to="/browse-workers" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-[var(--primary)] mb-5 transition-colors font-medium">
           <ChevronLeft size={16} /> {t('misc.back')}
@@ -77,7 +111,7 @@ const WorkerProfile: React.FC = () => {
 
               {/* CTAs */}
               <div className="flex flex-col gap-2">
-                <Link to="/post-requirements" className="btn btn-cta">{t('btn.hireWorker')}</Link>
+                <button onClick={handleHireClick} className="btn btn-cta">{t('btn.hireWorker')}</button>
                 <button className="btn btn-secondary"><MessageSquare size={16} /> {t('btn.sendMessage')}</button>
               </div>
             </div>
@@ -147,6 +181,23 @@ const WorkerProfile: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Hiring Payment Modal */}
+      {showHireModal && (
+        <HiringPaymentModal
+          workerName={`${worker.first_name} ${worker.last_name}`}
+          jobTitle={worker.title}
+          agreedRateINR={worker.hourly_rate}
+          payType="hourly"
+          onClose={() => setShowHireModal(false)}
+          onSuccess={(paymentId) => {
+            console.log('Hired from profile! Payment:', paymentId);
+            setShowHireModal(false);
+            setHireSuccess(true);
+            setTimeout(() => setHireSuccess(false), 4000);
+          }}
+        />
+      )}
     </div>
   );
 };

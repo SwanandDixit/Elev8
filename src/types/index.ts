@@ -14,6 +14,7 @@ export type NegotiationStatus = 'open' | 'pending_customer' | 'pending_worker' |
 export interface User {
   id: string;
   email: string;
+  name?: string;
   phone?: string;
   role: UserRole;
   lang_preference: Language;

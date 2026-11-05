@@ -7,6 +7,8 @@
  *  3. Worker upgrading to Premium profile — Monthly/annual subscription
  */
 
+import { isDemo } from './supabase';
+
 declare global {
   interface Window {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,9 +62,22 @@ export interface RazorpayErrorResponse {
 
 /** Open Razorpay checkout */
 export async function openRazorpayCheckout(opts: RazorpayPaymentOptions): Promise<void> {
+  // ── DEMO MODE: simulate a successful payment after 1.5s ──
+  if (isDemo) {
+    console.info('[Elev8 Demo] Payment simulated — no real transaction.');
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    opts.onSuccess({
+      razorpay_payment_id: 'demo_pay_' + Date.now(),
+      razorpay_order_id: 'demo_order_' + Date.now(),
+    });
+    return;
+  }
+
   const loaded = await loadRazorpayScript();
   if (!loaded) {
-    alert('Failed to load payment gateway. Please check your internet connection and try again.');
+    opts.onFailure?.({
+      error: { code: 'LOAD_FAILED', description: 'Failed to load payment gateway.', reason: 'Script load error' },
+    });
     return;
   }
 

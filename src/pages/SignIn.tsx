@@ -16,10 +16,9 @@ const SignIn: React.FC = () => {
     e.preventDefault();
     setError('');
     try {
-      await signIn(email, password);
-      const { role } = useAuthStore.getState();
-      if (role === 'admin') navigate('/admin');
-      else if (role === 'employer') navigate('/dashboard/employer');
+      const { role: returnedRole } = await signIn(email, password);
+      if (returnedRole === 'admin') navigate('/admin');
+      else if (returnedRole === 'employer') navigate('/dashboard/employer');
       else navigate('/dashboard/worker');
     } catch {
       setError('Invalid email or password. Please try again.');

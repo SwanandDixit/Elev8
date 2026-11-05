@@ -107,6 +107,8 @@ function App() {
           </Route>
           
           {/* Fallback */}
+          <Route path="/find-talent" element={<Navigate to="/browse-workers" replace />} />
+          <Route path="/post-job" element={<Navigate to="/post-requirements" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

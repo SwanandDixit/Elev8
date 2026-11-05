@@ -621,7 +621,9 @@ const WorkerDashboard: React.FC = () => {
           onSuccess={(planId, paymentId) => {
             console.log('Premium activated! Plan:', planId, 'Payment:', paymentId);
             setShowWorkerPremium(false);
-            setApplySuccessMessage('🎉 Premium activated! Your profile is now verified.');
+            setWorker(prev => prev ? { ...prev, is_premium: true } : prev);
+            setApplySuccessMessage('🎉 Premium activated! Your profile is now verified and boosted.');
+            setTimeout(() => setApplySuccessMessage(''), 5000);
           }}
         />
       )}

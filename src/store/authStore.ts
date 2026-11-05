@@ -10,7 +10,7 @@ interface AuthState {
   employerProfileId: string | null; // employer_profiles.id
   loading: boolean;
   initialized: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ role: UserRole }>;
   signUp: (email: string, password: string, role: UserRole, name?: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -145,12 +145,24 @@ export const useAuthStore = create<AuthState>((set) => ({
       };
       saveDemoSession(session);
       set({ ...session, session: 'demo', loading: false });
-      return;
+      return { role };
     }
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     set({ loading: false });
     if (error) throw error;
+
+    // Read role from session user metadata / users table
+    let role: UserRole = 'worker';
+    if (data.user) {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+      if (userData?.role) role = userData.role as UserRole;
+    }
+    return { role };
   },
 
   signUp: async (email, password, role, name) => {
